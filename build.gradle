@@ -1,0 +1,53 @@
+group 'com.batix.rundeck'
+version '1.0.0'
+
+ext.rundeckPluginVersion = '1.1'
+ext.pluginClassNames = [
+  'com.batix.rundeck.AnsibleResourceModelSourceFactory',
+  'com.batix.rundeck.AnsibleNodeExecutor',
+  'com.batix.rundeck.AnsibleFileCopier',
+  'com.batix.rundeck.AnsiblePlaybookNodeStep',
+  'com.batix.rundeck.AnsiblePlaybookWorkflowStep',
+  'com.batix.rundeck.AnsibleModuleNodeStep',
+  'com.batix.rundeck.AnsibleModuleWorkflowStep'
+].join(',')
+
+apply plugin: 'java'
+
+sourceCompatibility = '1.7'
+
+repositories {
+  mavenCentral()
+}
+
+configurations {
+  pluginLibs
+
+  compile {
+    extendsFrom pluginLibs
+  }
+}
+
+dependencies {
+  pluginLibs 'com.google.code.gson:gson:2.5'
+
+  compile 'org.rundeck:rundeck-core:2.6.3'
+}
+
+task copyToLib(type: Copy) {
+  into "$buildDir/output/lib"
+  from configurations.pluginLibs
+}
+
+jar {
+  from "$buildDir/output"
+  manifest {
+    def libList = configurations.pluginLibs.collect{'lib/' + it.name}.join(' ')
+    attributes 'Rundeck-Plugin-Classnames': pluginClassNames
+    attributes 'Rundeck-Plugin-File-Version': version
+    attributes 'Rundeck-Plugin-Version': rundeckPluginVersion
+    attributes 'Rundeck-Plugin-Archive': 'true'
+    attributes 'Rundeck-Plugin-Libs': "${libList}"
+  }
+  dependsOn(copyToLib)
+}
