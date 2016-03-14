@@ -49,7 +49,7 @@ Run a playbook as a node or workflow step (see note above). You specify a path t
 
 ## Installation ##
 
-- Download the .jar file from GitHub or compile it yourself (using Gradle, either your own the included wrapper)
+- [Download the .jar file from GitHub](https://github.com/Batix/rundeck-ansible-plugin/releases) or compile it yourself (using Gradle, either your own the included wrapper)
 - Copy the .jar file to your Rundeck plugins directory (`/var/lib/rundeck/libext` if you installed the .deb, for example)
 - Create a new project (this assumes you want every node in your project to be controlled via Ansible)
 - Choose "Ansible Resource Model Source" as the resource model source
