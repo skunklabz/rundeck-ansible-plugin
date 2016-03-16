@@ -44,7 +44,7 @@ public class AnsibleModuleWorkflowStep implements StepPlugin, Describable {
     return DescriptionBuilder.builder()
       .name(SERVICE_PROVIDER_NAME)
       .title("Ansible Module")
-      .description("Runs an Ansible Module on selected node.")
+      .description("Runs an Ansible Module on selected nodes.")
       .property(PropertyUtil.string(
         "module",
         "Module",
