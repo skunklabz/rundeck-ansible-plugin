@@ -199,11 +199,13 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
               }
             }
 
-            if (ele != null && ele.getAsString().length() > 0) {
+            if (ele != null && ele.isJsonPrimitive() && ele.getAsString().length() > 0) {
               node.setAttribute(item.getValue(), ele.getAsString());
             }
           } else {
-            if (root.get(item.getKey()).getAsString().length() > 0) {
+            if (root.has(item.getKey())
+              && root.get(item.getKey()).isJsonPrimitive()
+              && root.get(item.getKey()).getAsString().length() > 0) {
               node.setAttribute(item.getValue(), root.get(item.getKey()).getAsString());
             }
           }
