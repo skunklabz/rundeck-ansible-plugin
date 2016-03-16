@@ -29,10 +29,10 @@ class AnsibleRunner {
     }
   }
 
-  public static AnsibleRunner adHoc(String module, String... args) {
+  public static AnsibleRunner adHoc(String module, String arg) {
     AnsibleRunner ar = new AnsibleRunner(AnsibleCommand.AdHoc);
     ar.module = module;
-    ar.args = args;
+    ar.arg = arg;
     return ar;
   }
 
@@ -55,7 +55,7 @@ class AnsibleRunner {
 
   private final AnsibleCommand type;
   private String module;
-  private String[] args;
+  private String arg;
   private String playbook;
   private final List<String> limits = new ArrayList<>();
   private int result;
@@ -92,17 +92,9 @@ class AnsibleRunner {
       procArgs.add("-m");
       procArgs.add(module);
 
-      // remove null args
-      List<String> newArgs = new ArrayList<>();
-      for (String arg : args) {
-        if (arg != null) {
-          newArgs.add(arg);
-        }
-      }
-
-      if (newArgs.size() > 0) {
+      if (arg != null && arg.length() > 0) {
         procArgs.add("-a");
-        procArgs.addAll(newArgs);
+        procArgs.add(arg);
       }
 
       tempDirectory = Files.createTempDirectory("ansible-hosts");
