@@ -44,8 +44,11 @@ Run a playbook as a node or workflow step (see note above). You specify a path t
 
 ## Requirements ##
 
-- Ansible executable(s) in `PATH` of Rundeck user
-- Rundeck user needs to be able to successfully run Ansible commands, that includes access to Ansible's config files and keys
+- Ansible executables in `$PATH` of Rundeck user
+- Rundeck user needs to be able to successfully run Ansible commands, that includes access to Ansible's config files and keys - it depends on your setup (whether you installed via .deb or launcher etc.)
+  - You can check if everything works with something like this: `su rundeck -s /bin/bash -c "ansible all -m ping"`
+  - If it complains, chances are that your rundeck `$HOME` directory isn't writable by Rundeck, fix it with e.g. `chown rundeck /var/lib/rundeck` (see [this issue](https://github.com/Batix/rundeck-ansible-plugin/issues/2#issuecomment-197000132))
+  - Another thing, if you have a special setup: Rundeck's environment might be missing some things, if you are using `su` or similar to start rundeck - maybe you need to tell it to use a login shell via `-l` (see [this issue](https://github.com/Batix/rundeck-ansible-plugin/issues/3#issuecomment-198496564))
 
 ## Installation ##
 
@@ -60,5 +63,3 @@ Run a playbook as a node or workflow step (see note above). You specify a path t
 
 ## Notes ##
 I'm new to both Rundeck and Ansible so I expect there to be room for improvements. Only basic features have been implemented in this first pass, so I can play around with both tools. Liking it very much so far! :)
-
-Tested on Debian.
