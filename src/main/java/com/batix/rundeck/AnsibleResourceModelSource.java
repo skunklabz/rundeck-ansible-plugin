@@ -9,6 +9,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.*;
@@ -67,7 +68,9 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
       for (Path factFile : directoryStream) {
         NodeEntryImpl node = new NodeEntryImpl();
 
-        JsonElement json = new JsonParser().parse(Files.newBufferedReader(factFile, Charset.forName("utf-8")));
+        BufferedReader bufferedReader = Files.newBufferedReader(factFile, Charset.forName("utf-8"));
+        JsonElement json = new JsonParser().parse(bufferedReader);
+        bufferedReader.close();
         JsonObject root = json.getAsJsonObject();
 
         String hostname = root.get("inventory_hostname").getAsString();
@@ -213,6 +216,7 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
 
         nodes.putNode(node);
       }
+      directoryStream.close();
     } catch (IOException e) {
       throw new ResourceModelSourceException("Error reading facts.", e);
     }

@@ -170,7 +170,9 @@ class AnsibleRunner {
         task.results.add(result);
 
         result.host = file.toFile().getName();
-        result.json = new JsonParser().parse(new FileReader(file.toFile())).getAsJsonObject();
+        FileReader reader = new FileReader(file.toFile());
+        result.json = new JsonParser().parse(reader).getAsJsonObject();
+        reader.close();
 
         return FileVisitResult.CONTINUE;
       }
