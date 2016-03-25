@@ -74,7 +74,7 @@ public class AnsibleFileCopier implements DestinationFileCopier, Describable {
 
     String cmdArgs = "src='" + localTempFile.getAbsolutePath() + "' dest='" + destinationPath + "'";
 
-    AnsibleRunner runner = AnsibleRunner.adHoc("copy", cmdArgs).limit(node.getNodename());
+    AnsibleRunner runner = AnsibleRunner.adHoc("copy", cmdArgs, "").limit(node.getNodename());
     int result;
     try {
       result = runner.run();

@@ -35,7 +35,7 @@ public class AnsibleNodeExecutor implements NodeExecutor, Describable {
     flatCmd = flatCmd.replaceAll("^'|'$", "");
     cmdArgs += flatCmd;
 
-    AnsibleRunner runner = AnsibleRunner.adHoc("shell", cmdArgs).limit(node.getNodename());
+    AnsibleRunner runner = AnsibleRunner.adHoc("shell", cmdArgs, "").limit(node.getNodename());
     int result;
     try {
       result = runner.run();
