@@ -22,8 +22,9 @@ public class AnsiblePlaybookNodeStep implements NodeStepPlugin, Describable {
   @Override
   public void executeNodeStep(PluginStepContext context, Map<String, Object> configuration, INodeEntry entry) throws NodeStepException {
     String playbook = (String) configuration.get("playbook");
+    String extraArgs = (String) configuration.get("extraArgs");
 
-    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(entry.getNodename());
+    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(entry.getNodename()).extraArgs(extraArgs);
     int result;
     try {
       result = runner.run();
@@ -52,6 +53,13 @@ public class AnsiblePlaybookNodeStep implements NodeStepPlugin, Describable {
         true,
         null,
         new AnsiblePlaybookPropertyValidator()
+      ))
+      .property(PropertyUtil.string(
+        "extraArgs",
+        "Extra Arguments",
+        "Extra Arguments for the Ansible process",
+        false,
+        null
       ))
       .build();
   }

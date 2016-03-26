@@ -21,8 +21,9 @@ public class AnsiblePlaybookWorkflowStep implements StepPlugin, Describable {
   @Override
   public void executeStep(PluginStepContext context, Map<String, Object> configuration) throws StepException {
     String playbook = (String) configuration.get("playbook");
+    String extraArgs = (String) configuration.get("extraArgs");
 
-    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(context.getNodes());
+    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(context.getNodes()).extraArgs(extraArgs);
     int result;
     try {
       result = runner.run();
@@ -51,6 +52,13 @@ public class AnsiblePlaybookWorkflowStep implements StepPlugin, Describable {
         true,
         null,
         new AnsiblePlaybookPropertyValidator()
+      ))
+      .property(PropertyUtil.string(
+        "extraArgs",
+        "Extra Arguments",
+        "Extra Arguments for the Ansible process",
+        false,
+        null
       ))
       .build();
   }

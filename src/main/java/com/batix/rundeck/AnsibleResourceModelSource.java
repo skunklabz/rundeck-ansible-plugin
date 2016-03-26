@@ -19,10 +19,12 @@ import java.util.*;
 public class AnsibleResourceModelSource implements ResourceModelSource {
   final boolean gatherFacts;
   final String limit;
+  final String extraArgs;
 
   public AnsibleResourceModelSource(Properties configuration) {
     gatherFacts = "true".equals(configuration.get("gatherFacts"));
     limit = (String) configuration.get("limit");
+    extraArgs = (String) configuration.get("extraArgs");
   }
 
   @Override
@@ -49,6 +51,10 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
     args.add("-e facts=" + (gatherFacts ? "True" : "False"));
     if (limit != null && limit.length() > 0) {
       args.add("-l " + limit);
+    }
+
+    if (extraArgs != null && extraArgs.length() > 0) {
+      args.add(extraArgs);
     }
 
     try {

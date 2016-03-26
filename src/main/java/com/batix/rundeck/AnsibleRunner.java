@@ -29,11 +29,10 @@ class AnsibleRunner {
     }
   }
 
-  public static AnsibleRunner adHoc(String module, String arg, String options) {
+  public static AnsibleRunner adHoc(String module, String arg) {
     AnsibleRunner ar = new AnsibleRunner(AnsibleCommand.AdHoc);
     ar.module = module;
     ar.arg = arg;
-    ar.options = options;
     return ar;
   }
 
@@ -57,7 +56,7 @@ class AnsibleRunner {
   private final AnsibleCommand type;
   private String module;
   private String arg;
-  private String options;
+  private String extraArgs;
   private String playbook;
   private final List<String> limits = new ArrayList<>();
   private int result;
@@ -73,6 +72,14 @@ class AnsibleRunner {
 
   public AnsibleRunner limit(INodeSet nodes) {
     limits.addAll(nodes.getNodeNames());
+    return this;
+  }
+
+  /**
+   * Additional arguments to pass to the process
+   */
+  public AnsibleRunner extraArgs(String args) {
+    extraArgs = args;
     return this;
   }
 
@@ -99,10 +106,6 @@ class AnsibleRunner {
         procArgs.add(arg);
       }
 
-      if (options != null && options.length() > 0) {
-        procArgs.add(options);
-      }
-
       tempDirectory = Files.createTempDirectory("ansible-hosts");
       procArgs.add("-t");
       procArgs.add(tempDirectory.toFile().getAbsolutePath());
@@ -125,6 +128,10 @@ class AnsibleRunner {
 
       procArgs.add("-l");
       procArgs.add("@" + tempFile.getAbsolutePath());
+    }
+
+    if (extraArgs != null && extraArgs.length() > 0) {
+      procArgs.add(extraArgs);
     }
 
     Process proc = new ProcessBuilder()
