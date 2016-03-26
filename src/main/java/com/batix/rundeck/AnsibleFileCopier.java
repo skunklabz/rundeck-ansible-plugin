@@ -1,6 +1,8 @@
 package com.batix.rundeck;
 
 import com.dtolabs.rundeck.core.common.INodeEntry;
+import com.dtolabs.rundeck.core.common.IRundeckProject;
+import com.dtolabs.rundeck.core.common.ProjectManager;
 import com.dtolabs.rundeck.core.execution.ExecutionContext;
 import com.dtolabs.rundeck.core.execution.impl.jsch.JschScpFileCopier;
 import com.dtolabs.rundeck.core.execution.service.DestinationFileCopier;
@@ -8,6 +10,7 @@ import com.dtolabs.rundeck.core.execution.service.FileCopierException;
 import com.dtolabs.rundeck.core.plugins.Plugin;
 import com.dtolabs.rundeck.core.plugins.configuration.Describable;
 import com.dtolabs.rundeck.core.plugins.configuration.Description;
+import com.dtolabs.rundeck.core.plugins.configuration.PropertyUtil;
 import com.dtolabs.rundeck.plugins.ServiceNameConstants;
 import com.dtolabs.rundeck.plugins.util.DescriptionBuilder;
 
@@ -69,12 +72,16 @@ public class AnsibleFileCopier implements DestinationFileCopier, Describable {
       );
     }
 
+    ProjectManager projectManager = context.getFramework().getProjectManager();
+    IRundeckProject frameworkProject = projectManager.getFrameworkProject(context.getFrameworkProject());
+    String extraArgs = frameworkProject.hasProperty("extraArgs") ? frameworkProject.getProperty("extraArgs") : null;
+
     File localTempFile = scriptFile != null ?
       scriptFile : JschScpFileCopier.writeTempFile(context, null, input, script);
 
     String cmdArgs = "src='" + localTempFile.getAbsolutePath() + "' dest='" + destinationPath + "'";
 
-    AnsibleRunner runner = AnsibleRunner.adHoc("copy", cmdArgs).limit(node.getNodename());
+    AnsibleRunner runner = AnsibleRunner.adHoc("copy", cmdArgs).limit(node.getNodename()).extraArgs(extraArgs);
     int result;
     try {
       result = runner.run();
@@ -95,6 +102,13 @@ public class AnsibleFileCopier implements DestinationFileCopier, Describable {
       .name(SERVICE_PROVIDER_NAME)
       .title("Ansible File Copier")
       .description("Sends a file to a node via the copy module.")
+      .property(PropertyUtil.string(
+        "extraArgs",
+        "Extra Arguments",
+        "Extra Arguments for the Ansible process",
+        false,
+        null
+      ))
       .build();
   }
 }

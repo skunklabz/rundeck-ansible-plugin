@@ -23,8 +23,9 @@ public class AnsibleModuleNodeStep implements NodeStepPlugin, Describable {
   public void executeNodeStep(PluginStepContext context, Map<String, Object> configuration, INodeEntry entry) throws NodeStepException {
     String module = (String) configuration.get("module");
     String args = (String) configuration.get("args");
+    String extraArgs = (String) configuration.get("extraArgs");
 
-    AnsibleRunner runner = AnsibleRunner.adHoc(module, args).limit(entry.getNodename());
+    AnsibleRunner runner = AnsibleRunner.adHoc(module, args).limit(entry.getNodename()).extraArgs(extraArgs);
     int result;
     try {
       result = runner.run();
@@ -56,7 +57,14 @@ public class AnsibleModuleNodeStep implements NodeStepPlugin, Describable {
       .property(PropertyUtil.string(
         "args",
         "Arguments",
-        "Arguments to pass to the module",
+        "Arguments to pass to the module (-a/--args flag)",
+        false,
+        null
+      ))
+      .property(PropertyUtil.string(
+        "extraArgs",
+        "Extra Arguments",
+        "Extra Arguments for the Ansible process",
         false,
         null
       ))

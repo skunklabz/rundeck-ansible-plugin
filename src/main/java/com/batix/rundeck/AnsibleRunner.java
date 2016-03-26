@@ -56,6 +56,7 @@ class AnsibleRunner {
   private final AnsibleCommand type;
   private String module;
   private String arg;
+  private String extraArgs;
   private String playbook;
   private final List<String> limits = new ArrayList<>();
   private int result;
@@ -71,6 +72,14 @@ class AnsibleRunner {
 
   public AnsibleRunner limit(INodeSet nodes) {
     limits.addAll(nodes.getNodeNames());
+    return this;
+  }
+
+  /**
+   * Additional arguments to pass to the process
+   */
+  public AnsibleRunner extraArgs(String args) {
+    extraArgs = args;
     return this;
   }
 
@@ -119,6 +128,10 @@ class AnsibleRunner {
 
       procArgs.add("-l");
       procArgs.add("@" + tempFile.getAbsolutePath());
+    }
+
+    if (extraArgs != null && extraArgs.length() > 0) {
+      procArgs.add(extraArgs);
     }
 
     Process proc = new ProcessBuilder()

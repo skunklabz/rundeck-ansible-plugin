@@ -34,24 +34,27 @@ public class AnsibleNodeExecutor implements NodeExecutor, Describable {
     String flatCmd = ExecArgList.joinAndQuote(Arrays.asList(command), quote);
     flatCmd = flatCmd.replaceAll("^'|'$", "");
     cmdArgs += flatCmd;
+    String extraArgs = frameworkProject.hasProperty("extraArgs") ? frameworkProject.getProperty("extraArgs") : null;
 
-    AnsibleRunner runner = AnsibleRunner.adHoc("shell", cmdArgs).limit(node.getNodename());
+    AnsibleRunner runner = AnsibleRunner.adHoc("shell", cmdArgs).limit(node.getNodename()).extraArgs(extraArgs);
     int result;
     try {
       result = runner.run();
     } catch (Exception e) {
+      System.out.println(e.getMessage());
+      e.printStackTrace();
       return NodeExecutorResultImpl.createFailure(AnsibleFailureReason.AnsibleError, e.getMessage(), e, node, runner.getResult());
     }
 
-    JsonObject json = runner.getResults().get(0).results.get(0).json;
+    JsonObject json = runner.getResults().get(0).results.size() > 0 ? runner.getResults().get(0).results.get(0).json : null;
 
-    if (json.has("stdout")) {
+    if (json != null && json.has("stdout")) {
       String string = json.get("stdout").getAsString();
       if (string != null && string.length() > 0) {
         System.out.println(string);
       }
     }
-    if (json.has("stderr")) {
+    if (json != null && json.has("stderr")) {
       String string = json.get("stderr").getAsString();
       if (string != null && string.length() > 0) {
         System.err.println(string);
@@ -78,6 +81,13 @@ public class AnsibleNodeExecutor implements NodeExecutor, Describable {
         true,
         "/bin/bash",
         Arrays.asList("/bin/sh", "/bin/bash")
+      ))
+      .property(PropertyUtil.string(
+        "extraArgs",
+        "Extra Arguments",
+        "Extra Arguments for the Ansible process",
+        false,
+        null
       ))
       .build();
   }

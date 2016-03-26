@@ -1,5 +1,5 @@
 group 'com.batix.rundeck'
-version '1.0.2'
+version '1.2.0'
 
 ext.rundeckPluginVersion = '1.1'
 ext.pluginClassNames = [

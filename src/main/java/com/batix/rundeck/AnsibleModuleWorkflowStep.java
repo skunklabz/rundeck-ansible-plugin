@@ -22,8 +22,9 @@ public class AnsibleModuleWorkflowStep implements StepPlugin, Describable {
   public void executeStep(PluginStepContext context, Map<String, Object> configuration) throws StepException {
     String module = (String) configuration.get("module");
     String args = (String) configuration.get("args");
+    String extraArgs = (String) configuration.get("extraArgs");
 
-    AnsibleRunner runner = AnsibleRunner.adHoc(module, args).limit(context.getNodes());
+    AnsibleRunner runner = AnsibleRunner.adHoc(module, args).limit(context.getNodes()).extraArgs(extraArgs);
     int result;
     try {
       result = runner.run();
@@ -55,7 +56,14 @@ public class AnsibleModuleWorkflowStep implements StepPlugin, Describable {
       .property(PropertyUtil.string(
         "args",
         "Arguments",
-        "Arguments to pass to the module",
+        "Arguments to pass to the module (-a/--args flag)",
+        false,
+        null
+      ))
+      .property(PropertyUtil.string(
+        "extraArgs",
+        "Extra Arguments",
+        "Extra Arguments for the Ansible process",
         false,
         null
       ))

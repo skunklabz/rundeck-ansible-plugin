@@ -41,6 +41,13 @@ public class AnsibleResourceModelSourceFactory implements ResourceModelSourceFac
         false,
         ""
       ))
+      .property(PropertyUtil.string(
+        "extraArgs",
+        "Extra Arguments",
+        "Extra Arguments for the Ansible process",
+        false,
+        null
+      ))
       .build();
   }
 }
