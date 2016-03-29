@@ -49,6 +49,7 @@ Run a playbook as a node or workflow step (see note above). You specify a path t
   - You can check if everything works with something like this: `su rundeck -s /bin/bash -c "ansible all -m ping"`
   - If it complains, chances are that your rundeck `$HOME` directory isn't writable by Rundeck, fix it with e.g. `chown rundeck /var/lib/rundeck` (see [this issue](https://github.com/Batix/rundeck-ansible-plugin/issues/2#issuecomment-197000132))
   - Another thing, if you have a special setup: Rundeck's environment might be missing some things, if you are using `su` or similar to start rundeck - maybe you need to tell it to use a login shell via `-l` (see [this issue](https://github.com/Batix/rundeck-ansible-plugin/issues/3#issuecomment-198496564))
+  - If you are running CentOS 6.7 or similar (RHEL) or another system using SELinux, you may need to install libselinux-python (`yum install libselinux-python`) or disable SELinux on boot (see [this issue](https://github.com/Batix/rundeck-ansible-plugin/issues/13))
 
 ## Installation ##
 
