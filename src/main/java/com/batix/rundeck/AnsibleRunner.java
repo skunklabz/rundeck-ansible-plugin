@@ -1,6 +1,7 @@
 package com.batix.rundeck;
 
 import com.dtolabs.rundeck.core.common.INodeSet;
+import com.dtolabs.rundeck.core.utils.OptsUtil;
 import com.dtolabs.utils.Streams;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -56,7 +57,7 @@ class AnsibleRunner {
   private final AnsibleCommand type;
   private String module;
   private String arg;
-  private String extraArgs;
+  private String[] extraArgs;
   private String playbook;
   private final List<String> limits = new ArrayList<>();
   private int result;
@@ -79,6 +80,14 @@ class AnsibleRunner {
    * Additional arguments to pass to the process
    */
   public AnsibleRunner extraArgs(String args) {
+    extraArgs = OptsUtil.burst(args);
+    return this;
+  }
+
+  /**
+   * Additional arguments to pass to the process
+   */
+  public AnsibleRunner extraArgs(String[] args) {
     extraArgs = args;
     return this;
   }
@@ -130,8 +139,8 @@ class AnsibleRunner {
       procArgs.add("@" + tempFile.getAbsolutePath());
     }
 
-    if (extraArgs != null && extraArgs.length() > 0) {
-      procArgs.add(extraArgs);
+    if (extraArgs != null && extraArgs.length > 0) {
+      procArgs.addAll(Arrays.asList(extraArgs));
     }
 
     Process proc = new ProcessBuilder()
