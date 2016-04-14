@@ -80,7 +80,9 @@ class AnsibleRunner {
    * Additional arguments to pass to the process
    */
   public AnsibleRunner extraArgs(String args) {
-    extraArgs = OptsUtil.burst(args);
+    if (args != null && args.length() > 0) {
+      extraArgs = OptsUtil.burst(args);
+    }
     return this;
   }
 
@@ -88,7 +90,9 @@ class AnsibleRunner {
    * Additional arguments to pass to the process
    */
   public AnsibleRunner extraArgs(String[] args) {
-    extraArgs = args;
+    if (args != null && args.length > 0) {
+      extraArgs = args;
+    }
     return this;
   }
 
