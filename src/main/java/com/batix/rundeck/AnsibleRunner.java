@@ -122,7 +122,7 @@ class AnsibleRunner {
 
   /**
    * Specify in which directory Ansible is run.
-   * If none is specified, a temporary directory will be created automatically, if needed.
+   * If none is specified, a temporary directory will be created automatically.
    */
   public AnsibleRunner tempDirectory(Path dir) {
     if (dir != null) {
@@ -137,6 +137,9 @@ class AnsibleRunner {
     }
     done = true;
 
+    if (tempDirectory == null) {
+      tempDirectory = Files.createTempDirectory("ansible-rundeck");
+    }
     File tempFile = null;
 
     List<String> procArgs = new ArrayList<>();
@@ -151,10 +154,6 @@ class AnsibleRunner {
       if (arg != null && arg.length() > 0) {
         procArgs.add("-a");
         procArgs.add(arg);
-      }
-
-      if (tempDirectory == null) {
-        tempDirectory = Files.createTempDirectory("ansible-hosts");
       }
       procArgs.add("-t");
       procArgs.add(tempDirectory.toFile().getAbsolutePath());
@@ -193,6 +192,7 @@ class AnsibleRunner {
 
     Process proc = new ProcessBuilder()
       .command(procArgs)
+      .directory(tempDirectory.toFile())
       .redirectErrorStream(true)
       .start();
     proc.waitFor();
