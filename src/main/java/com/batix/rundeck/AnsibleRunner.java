@@ -98,6 +98,16 @@ class AnsibleRunner {
   }
 
   /**
+   * Additional arguments to pass to the process
+   */
+  public AnsibleRunner extraArgs(List<String> args) {
+    if (args != null && args.size() > 0) {
+      extraArgs = args.toArray(new String[] {});
+    }
+    return this;
+  }
+
+  /**
    * Run Ansible with -vvvv and print the command and output to the console / log
    */
   public AnsibleRunner debug() {
