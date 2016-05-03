@@ -2,17 +2,20 @@ package com.batix.rundeck;
 
 import com.dtolabs.rundeck.core.common.INodeSet;
 import com.dtolabs.rundeck.core.utils.OptsUtil;
-import com.dtolabs.utils.Streams;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,7 +60,8 @@ class AnsibleRunner {
   private String[] extraArgs;
   private String playbook;
   private boolean debug;
-  private Path tempDirectory =  null;
+  private Path tempDirectory;
+  private boolean retainTempDirectory;
   private final List<String> limits = new ArrayList<>();
   private int result;
 
@@ -121,6 +125,21 @@ class AnsibleRunner {
   }
 
   /**
+   * Keep the temp dir around, dont' delete it.
+   */
+  public AnsibleRunner retainTempDirectory() {
+    return retainTempDirectory(true);
+  }
+
+  /**
+   * Keep the temp dir around, dont' delete it.
+   */
+  public AnsibleRunner retainTempDirectory(boolean retainTempDirectory) {
+    this.retainTempDirectory = retainTempDirectory;
+    return this;
+  }
+
+  /**
    * Specify in which directory Ansible is run.
    * If none is specified, a temporary directory will be created automatically.
    */
@@ -140,6 +159,7 @@ class AnsibleRunner {
     if (tempDirectory == null) {
       tempDirectory = Files.createTempDirectory("ansible-rundeck");
     }
+    File outputFile = File.createTempFile("ansible-runner", "output");
     File tempFile = null;
 
     List<String> procArgs = new ArrayList<>();
@@ -183,7 +203,10 @@ class AnsibleRunner {
     }
 
     if (extraArgs != null && extraArgs.length > 0) {
-      procArgs.addAll(Arrays.asList(extraArgs));
+      // split the extraArgs and add them as single args (might contain unquoted spaces which separate args)
+      for (String extraArg : extraArgs) {
+        Collections.addAll(procArgs, OptsUtil.burst(extraArg));
+      }
     }
 
     if (debug) {
@@ -194,13 +217,15 @@ class AnsibleRunner {
       .command(procArgs)
       .directory(tempDirectory.toFile())
       .redirectErrorStream(true)
+      .redirectOutput(outputFile) // redirect to file, stream might block on too much output
       .start();
     proc.waitFor();
     result = proc.exitValue();
 
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    Streams.copyStream(proc.getInputStream(), baos);
-    output = new String(baos.toByteArray());
+    output = new String(Files.readAllBytes(outputFile.toPath()));
+    if (!outputFile.delete()) {
+      outputFile.deleteOnExit();
+    }
 
     if (debug) {
       System.out.println("Ansible output:\n" + output);
@@ -215,7 +240,7 @@ class AnsibleRunner {
     if (tempFile != null && !tempFile.delete()) {
       tempFile.deleteOnExit();
     }
-    if (tempDirectory != null) {
+    if (tempDirectory != null && !retainTempDirectory) {
       Files.walkFileTree(tempDirectory, new SimpleFileVisitor<Path>() {
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
