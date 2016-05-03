@@ -10,10 +10,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -60,6 +57,7 @@ class AnsibleRunner {
   private String[] extraArgs;
   private String playbook;
   private boolean debug;
+  private Path tempDirectory =  null;
   private final List<String> limits = new ArrayList<>();
   private int result;
 
@@ -122,13 +120,23 @@ class AnsibleRunner {
     return this;
   }
 
+  /**
+   * Specify in which directory Ansible is run.
+   * If none is specified, a temporary directory will be created automatically, if needed.
+   */
+  public AnsibleRunner tempDirectory(Path dir) {
+    if (dir != null) {
+      this.tempDirectory = dir;
+    }
+    return this;
+  }
+
   public int run() throws Exception {
     if (done) {
       throw new IllegalStateException("already done");
     }
     done = true;
 
-    Path tempDirectory = null;
     File tempFile = null;
 
     List<String> procArgs = new ArrayList<>();
@@ -145,7 +153,9 @@ class AnsibleRunner {
         procArgs.add(arg);
       }
 
-      tempDirectory = Files.createTempDirectory("ansible-hosts");
+      if (tempDirectory == null) {
+        tempDirectory = Files.createTempDirectory("ansible-hosts");
+      }
       procArgs.add("-t");
       procArgs.add(tempDirectory.toFile().getAbsolutePath());
     } else if (type == AnsibleCommand.Playbook) {
