@@ -49,6 +49,7 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
     args.add("ansible-playbook");
     args.add("gather-hosts.yml");
     args.add("-e facts=" + (gatherFacts ? "True" : "False"));
+    args.add("-e tmpdir='" + tempDirectory.toFile().getAbsolutePath() + "'");
     if (limit != null && limit.length() > 0) {
       args.add("-l " + limit);
     }
