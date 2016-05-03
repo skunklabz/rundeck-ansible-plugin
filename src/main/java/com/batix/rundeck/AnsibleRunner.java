@@ -59,6 +59,7 @@ class AnsibleRunner {
   private String arg;
   private String[] extraArgs;
   private String playbook;
+  private boolean debug;
   private final List<String> limits = new ArrayList<>();
   private int result;
 
@@ -93,6 +94,21 @@ class AnsibleRunner {
     if (args != null && args.length > 0) {
       extraArgs = args;
     }
+    return this;
+  }
+
+  /**
+   * Run Ansible with -vvvv and print the command and output to the console / log
+   */
+  public AnsibleRunner debug() {
+    return debug(true);
+  }
+
+  /**
+   * Run Ansible with -vvvv and print the command and output to the console / log
+   */
+  public AnsibleRunner debug(boolean debug) {
+    this.debug = debug;
     return this;
   }
 
@@ -143,8 +159,16 @@ class AnsibleRunner {
       procArgs.add("@" + tempFile.getAbsolutePath());
     }
 
+    if (debug) {
+      procArgs.add("-vvvv");
+    }
+
     if (extraArgs != null && extraArgs.length > 0) {
       procArgs.addAll(Arrays.asList(extraArgs));
+    }
+
+    if (debug) {
+      System.out.println("Ansible command:\n" + procArgs);
     }
 
     Process proc = new ProcessBuilder()
@@ -157,6 +181,10 @@ class AnsibleRunner {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     Streams.copyStream(proc.getInputStream(), baos);
     output = new String(baos.toByteArray());
+
+    if (debug) {
+      System.out.println("Ansible output:\n" + output);
+    }
 
     if (type == AnsibleCommand.AdHoc) {
       results.add(parseTreeDir(tempDirectory));
