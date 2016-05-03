@@ -45,29 +45,26 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
       throw new ResourceModelSourceException("Error copying files.");
     }
 
-    ArrayList<String> args = new ArrayList<>();
-    args.add("ansible-playbook");
-    args.add("gather-hosts.yml");
-    args.add("-e facts=" + (gatherFacts ? "True" : "False"));
-    args.add("-e tmpdir='" + tempDirectory.toFile().getAbsolutePath() + "'");
+    AnsibleRunner runner = AnsibleRunner.playbook("gather-hosts.yml");
+
+    runner.tempDirectory(tempDirectory);
+
     if (limit != null && limit.length() > 0) {
-      args.add("-l " + limit);
+      runner.limit(limit);
     }
 
+    List<String> args = new ArrayList<>();
+    args.add("-e facts=" + (gatherFacts ? "True" : "False"));
+    args.add("-e tmpdir='" + tempDirectory.toFile().getAbsolutePath() + "'");
     if (extraArgs != null && extraArgs.length() > 0) {
       args.add(extraArgs);
     }
+    runner.extraArgs(args);
 
     try {
-      Process proc = new ProcessBuilder()
-        .command(args)
-        .directory(tempDirectory.toFile())
-        .start();
-      proc.waitFor();
-    } catch (IOException e) {
+      runner.run();
+    } catch (Exception e) {
       throw new ResourceModelSourceException("Error running playbook.", e);
-    } catch (InterruptedException e) {
-      throw new ResourceModelSourceException("Error while waiting for playbook to finish.", e);
     }
 
     try {
