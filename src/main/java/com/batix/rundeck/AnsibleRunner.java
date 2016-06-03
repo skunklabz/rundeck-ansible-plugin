@@ -5,9 +5,7 @@ import com.dtolabs.rundeck.core.utils.OptsUtil;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -64,6 +62,8 @@ class AnsibleRunner {
   private boolean retainTempDirectory;
   private final List<String> limits = new ArrayList<>();
   private int result;
+  private boolean stream;
+  private Listener listener;
 
   private AnsibleRunner(AnsibleCommand type) {
     this.type = type;
@@ -125,6 +125,30 @@ class AnsibleRunner {
   }
 
   /**
+   * Ansible output won't be logged to a file, but will be sent to a listener, see {@link #listener(Listener)}
+   */
+  public AnsibleRunner stream() {
+    return stream(true);
+  }
+
+  /**
+   * Ansible output won't be logged to a file, but will be sent to a listener, see {@link #listener(Listener)}
+   */
+  public AnsibleRunner stream(boolean stream) {
+    this.stream = stream;
+    return this;
+  }
+
+  /**
+   * Set the listener to notify, when run in stream mode, see {@link #stream()}
+   * @param listener  the listener which will receive output lines
+   */
+  public AnsibleRunner listener(Listener listener) {
+    this.listener = listener;
+    return this;
+  }
+
+  /**
    * Keep the temp dir around, dont' delete it.
    */
   public AnsibleRunner retainTempDirectory() {
@@ -159,7 +183,7 @@ class AnsibleRunner {
     if (tempDirectory == null) {
       tempDirectory = Files.createTempDirectory("ansible-rundeck");
     }
-    File outputFile = File.createTempFile("ansible-runner", "output");
+
     File tempFile = null;
 
     List<String> procArgs = new ArrayList<>();
@@ -213,18 +237,39 @@ class AnsibleRunner {
       System.out.println("Ansible command:\n" + procArgs);
     }
 
-    Process proc = new ProcessBuilder()
+    ProcessBuilder processBuilder = new ProcessBuilder()
       .command(procArgs)
-      .directory(tempDirectory.toFile())
-      .redirectErrorStream(true)
-      .redirectOutput(outputFile) // redirect to file, stream might block on too much output
-      .start();
+      .directory(tempDirectory.toFile()); // set cwd
+    File outputFile = null;
+    if (!stream) {
+      outputFile = File.createTempFile("ansible-runner", "output");
+      processBuilder
+        .redirectErrorStream(true) // redirect stderr to stdout
+        .redirectOutput(outputFile); // redirect to file, stream might block on too much output
+    }
+    Process proc = processBuilder.start();
+
+    if (stream) {
+      InputStream stdout = proc.getInputStream();
+      InputStreamReader in = new InputStreamReader(stdout);
+      LineNumberReader lines = new LineNumberReader(in);
+      String line;
+      StringBuilder sb = new StringBuilder();
+      while ((line = lines.readLine()) != null) {
+        sb.append(line).append("\n");
+        if (listener != null) listener.output(line);
+      }
+      output = sb.toString();
+    }
+
     proc.waitFor();
     result = proc.exitValue();
 
-    output = new String(Files.readAllBytes(outputFile.toPath()));
-    if (!outputFile.delete()) {
-      outputFile.deleteOnExit();
+    if (outputFile != null) {
+      output = new String(Files.readAllBytes(outputFile.toPath()));
+      if (!outputFile.delete()) {
+        outputFile.deleteOnExit();
+      }
     }
 
     if (debug) {
@@ -332,5 +377,9 @@ class AnsibleRunner {
     String host;
     String result;
     JsonObject json;
+  }
+
+  public interface Listener {
+    void output(String line);
   }
 }
