@@ -1,7 +1,7 @@
 package com.batix.rundeck;
 
+import com.batix.rundeck.ext.ArgumentTokenizer;
 import com.dtolabs.rundeck.core.common.INodeSet;
-import com.dtolabs.rundeck.core.utils.OptsUtil;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -41,6 +41,20 @@ class AnsibleRunner {
     return ar;
   }
 
+  /**
+   * Splits up a command and its arguments inf form of a string into a list of strings.
+   * @param commandline  String with a possibly complex command and arguments
+   * @return a list of arguments
+   */
+  public static List<String> tokenizeCommand(String commandline) {
+    List<String> tokens = ArgumentTokenizer.tokenize(commandline, true);
+    List<String> args = new ArrayList<>();
+    for (String token : tokens) {
+      args.add(token.replaceAll("\\\\", "\\\\").replaceAll("^\"|\"$", ""));
+    }
+    return args;
+  }
+
   private static final Pattern pHostPlaybook = Pattern.compile(
     "^(.+?): \\[(.+?)\\] => (\\{.+?\\})$"
   );
@@ -55,7 +69,7 @@ class AnsibleRunner {
   private final AnsibleCommand type;
   private String module;
   private String arg;
-  private String[] extraArgs;
+  private String extraArgs;
   private String playbook;
   private boolean debug;
   private Path tempDirectory;
@@ -81,30 +95,11 @@ class AnsibleRunner {
 
   /**
    * Additional arguments to pass to the process
+   * @param args  extra commandline which gets appended to the base command and arguments
    */
   public AnsibleRunner extraArgs(String args) {
     if (args != null && args.length() > 0) {
-      extraArgs = OptsUtil.burst(args);
-    }
-    return this;
-  }
-
-  /**
-   * Additional arguments to pass to the process
-   */
-  public AnsibleRunner extraArgs(String[] args) {
-    if (args != null && args.length > 0) {
       extraArgs = args;
-    }
-    return this;
-  }
-
-  /**
-   * Additional arguments to pass to the process
-   */
-  public AnsibleRunner extraArgs(List<String> args) {
-    if (args != null && args.size() > 0) {
-      extraArgs = args.toArray(new String[] {});
     }
     return this;
   }
@@ -226,11 +221,12 @@ class AnsibleRunner {
       procArgs.add("-vvvv");
     }
 
-    if (extraArgs != null && extraArgs.length > 0) {
-      // split the extraArgs and add them as single args (might contain unquoted spaces which separate args)
-      for (String extraArg : extraArgs) {
-        Collections.addAll(procArgs, OptsUtil.burst(extraArg));
+    if (extraArgs != null && extraArgs.length() > 0) {
+      if (debug) {
+        System.out.println("extraArgs: " + extraArgs);
+        System.out.println("tokenized: " + tokenizeCommand(extraArgs));
       }
+      procArgs.addAll(tokenizeCommand(extraArgs));
     }
 
     if (debug) {

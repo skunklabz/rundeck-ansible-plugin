@@ -1,5 +1,6 @@
 package com.batix.rundeck;
 
+import com.dtolabs.rundeck.core.common.IRundeckProject;
 import com.dtolabs.rundeck.core.execution.workflow.steps.StepException;
 import com.dtolabs.rundeck.core.plugins.Plugin;
 import com.dtolabs.rundeck.core.plugins.configuration.Describable;
@@ -24,6 +25,9 @@ public class AnsiblePlaybookWorkflowStep implements StepPlugin, Describable {
     String extraArgs = (String) configuration.get("extraArgs");
 
     AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(context.getNodes()).extraArgs(extraArgs);
+    if ("true".equals(System.getProperty("ansible.debug"))) {
+      runner.debug();
+    }
     int result;
     try {
       result = runner.run();

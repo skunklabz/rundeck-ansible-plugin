@@ -1,10 +1,8 @@
 package com.batix.rundeck;
 
-import com.dtolabs.rundeck.core.cli.CLIUtils;
 import com.dtolabs.rundeck.core.common.INodeEntry;
 import com.dtolabs.rundeck.core.common.IRundeckProject;
 import com.dtolabs.rundeck.core.common.ProjectManager;
-import com.dtolabs.rundeck.core.execution.ExecArgList;
 import com.dtolabs.rundeck.core.execution.ExecutionContext;
 import com.dtolabs.rundeck.core.execution.service.NodeExecutor;
 import com.dtolabs.rundeck.core.execution.service.NodeExecutorResult;
@@ -13,7 +11,6 @@ import com.dtolabs.rundeck.core.plugins.Plugin;
 import com.dtolabs.rundeck.core.plugins.configuration.Describable;
 import com.dtolabs.rundeck.core.plugins.configuration.Description;
 import com.dtolabs.rundeck.core.plugins.configuration.PropertyUtil;
-import com.dtolabs.rundeck.core.utils.Converter;
 import com.dtolabs.rundeck.plugins.ServiceNameConstants;
 import com.dtolabs.rundeck.plugins.util.DescriptionBuilder;
 import com.google.gson.JsonObject;
@@ -26,17 +23,21 @@ public class AnsibleNodeExecutor implements NodeExecutor, Describable {
 
   @Override
   public NodeExecutorResult executeCommand(ExecutionContext context, String[] command, INodeEntry node) {
-    String cmdArgs = "";
+    StringBuilder cmdArgs = new StringBuilder();
     ProjectManager projectManager = context.getFramework().getProjectManager();
-    IRundeckProject frameworkProject = projectManager.getFrameworkProject(context.getFrameworkProject());
-    cmdArgs += "executable=" + frameworkProject.getProperty("executable") + " ";
-    final Converter<String, String> quote = CLIUtils.argumentQuoteForOperatingSystem(node.getOsFamily());
-    String flatCmd = ExecArgList.joinAndQuote(Arrays.asList(command), quote);
-    flatCmd = flatCmd.replaceAll("^'|'$", "");
-    cmdArgs += flatCmd;
-    String extraArgs = frameworkProject.hasProperty("extraArgs") ? frameworkProject.getProperty("extraArgs") : null;
+    IRundeckProject project = projectManager.getFrameworkProject(context.getFrameworkProject());
+    cmdArgs.append("executable=").append(project.getProperty("executable"));
 
-    AnsibleRunner runner = AnsibleRunner.adHoc("shell", cmdArgs).limit(node.getNodename()).extraArgs(extraArgs);
+    for (String cmd : command) {
+      cmdArgs.append(" '").append(cmd).append("'");
+    }
+
+    String extraArgs = project.hasProperty("extraArgs") ? project.getProperty("extraArgs") : null;
+
+    AnsibleRunner runner = AnsibleRunner.adHoc("shell", cmdArgs.toString()).limit(node.getNodename()).extraArgs(extraArgs);
+    if ("true".equals(System.getProperty("ansible.debug"))) {
+      runner.debug();
+    }
     int result;
     try {
       result = runner.run();

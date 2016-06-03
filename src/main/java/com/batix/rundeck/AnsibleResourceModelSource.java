@@ -47,7 +47,9 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
     }
 
     AnsibleRunner runner = AnsibleRunner.playbook("gather-hosts.yml");
-
+    if ("true".equals(System.getProperty("ansible.debug"))) {
+      runner.debug();
+    }
     runner.tempDirectory(tempDirectory).retainTempDirectory();
 
     if (limit != null && limit.length() > 0) {

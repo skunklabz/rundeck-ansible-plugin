@@ -1,6 +1,7 @@
 package com.batix.rundeck;
 
 import com.dtolabs.rundeck.core.common.INodeEntry;
+import com.dtolabs.rundeck.core.common.IRundeckProject;
 import com.dtolabs.rundeck.core.execution.workflow.steps.node.NodeStepException;
 import com.dtolabs.rundeck.core.plugins.Plugin;
 import com.dtolabs.rundeck.core.plugins.configuration.Describable;
@@ -25,6 +26,9 @@ public class AnsiblePlaybookNodeStep implements NodeStepPlugin, Describable {
     String extraArgs = (String) configuration.get("extraArgs");
 
     AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(entry.getNodename()).extraArgs(extraArgs);
+    if ("true".equals(System.getProperty("ansible.debug"))) {
+      runner.debug();
+    }
     int result;
     try {
       result = runner.run();

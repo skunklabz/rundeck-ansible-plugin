@@ -59,12 +59,13 @@ public class AnsibleFileCopier implements DestinationFileCopier, Describable {
     final INodeEntry node,
     String destinationPath
   ) throws FileCopierException {
+    IRundeckProject project = context.getFramework().getFrameworkProjectMgr().getFrameworkProject(context.getFrameworkProject());
     if (destinationPath == null) {
       String identity = (context.getDataContext() != null && context.getDataContext().get("job") != null) ?
         context.getDataContext().get("job").get("execid") : null;
       destinationPath = JschScpFileCopier.generateRemoteFilepathForNode(
         node,
-        context.getFramework().getFrameworkProjectMgr().getFrameworkProject(context.getFrameworkProject()),
+        project,
         context.getFramework(),
         scriptFile != null ? scriptFile.getName() : "dispatch-script",
         null,
@@ -82,6 +83,9 @@ public class AnsibleFileCopier implements DestinationFileCopier, Describable {
     String cmdArgs = "src='" + localTempFile.getAbsolutePath() + "' dest='" + destinationPath + "'";
 
     AnsibleRunner runner = AnsibleRunner.adHoc("copy", cmdArgs).limit(node.getNodename()).extraArgs(extraArgs);
+    if ("true".equals(System.getProperty("ansible.debug"))) {
+      runner.debug();
+    }
     int result;
     try {
       result = runner.run();
