@@ -23,20 +23,26 @@ public class AnsiblePlaybookWorkflowStep implements StepPlugin, Describable {
   public void executeStep(PluginStepContext context, Map<String, Object> configuration) throws StepException {
     String playbook = (String) configuration.get("playbook");
     String extraArgs = (String) configuration.get("extraArgs");
+    final PluginLogger logger = context.getLogger();
 
-    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(context.getNodes()).extraArgs(extraArgs);
+    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(context.getNodes()).extraArgs(extraArgs).stream();
     if ("true".equals(System.getProperty("ansible.debug"))) {
       runner.debug();
     }
+
+    runner.listener(new AnsibleRunner.Listener() {
+      @Override
+      public void output(String line) {
+        logger.log(Project.MSG_INFO, line);
+      }
+    });
+
     int result;
     try {
       result = runner.run();
     } catch (Exception e) {
       throw new StepException("Error running Ansible.", e, AnsibleFailureReason.AnsibleError);
     }
-
-    PluginLogger logger = context.getLogger();
-    logger.log(Project.MSG_INFO, runner.getOutput());
 
     if (result != 0) {
       throw new StepException("Ansible exited with non-zero code.", AnsibleFailureReason.AnsibleNonZero);

@@ -76,6 +76,7 @@ class AnsibleRunner {
   private boolean retainTempDirectory;
   private final List<String> limits = new ArrayList<>();
   private int result;
+  private boolean doParseOutput;
   private boolean stream;
   private Listener listener;
 
@@ -116,6 +117,21 @@ class AnsibleRunner {
    */
   public AnsibleRunner debug(boolean debug) {
     this.debug = debug;
+    return this;
+  }
+
+  /**
+   * Parse output to collect stdout/stderr, forces -v on playbooks to get some JSON
+   */
+  public AnsibleRunner doParseOutput() {
+    return doParseOutput(true);
+  }
+
+  /**
+   * Parse output to collect stdout/stderr, forces -v on playbooks to get some JSON
+   */
+  public AnsibleRunner doParseOutput(boolean doParseOutput) {
+    this.doParseOutput = doParseOutput;
     return this;
   }
 
@@ -199,7 +215,7 @@ class AnsibleRunner {
     } else if (type == AnsibleCommand.Playbook) {
       procArgs.add(playbook);
 
-      procArgs.add("-v"); // to get JSON output, one line per host and task
+      if (doParseOutput) procArgs.add("-v"); // to get JSON output, one line per host and task
     }
 
     if (limits.size() == 1) {
@@ -322,7 +338,8 @@ class AnsibleRunner {
   }
 
   private void parseOutput() {
-    if (type == AnsibleCommand.Playbook) {
+    if (type == AnsibleCommand.Playbook && doParseOutput) {
+      // TODO not all modules print JSON with -v (e.g. debug), drop all this? it's not used either...
       AnsibleTask curTask = null;
 
       for (String line : output.split("\\r?\\n")) {

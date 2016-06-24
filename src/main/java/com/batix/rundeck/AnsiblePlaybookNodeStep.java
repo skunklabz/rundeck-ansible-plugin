@@ -24,20 +24,26 @@ public class AnsiblePlaybookNodeStep implements NodeStepPlugin, Describable {
   public void executeNodeStep(PluginStepContext context, Map<String, Object> configuration, INodeEntry entry) throws NodeStepException {
     String playbook = (String) configuration.get("playbook");
     String extraArgs = (String) configuration.get("extraArgs");
+    final PluginLogger logger = context.getLogger();
 
-    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(entry.getNodename()).extraArgs(extraArgs);
+    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(entry.getNodename()).extraArgs(extraArgs).stream();
     if ("true".equals(System.getProperty("ansible.debug"))) {
       runner.debug();
     }
+
+    runner.listener(new AnsibleRunner.Listener() {
+      @Override
+      public void output(String line) {
+        logger.log(Project.MSG_INFO, line);
+      }
+    });
+
     int result;
     try {
       result = runner.run();
     } catch (Exception e) {
       throw new NodeStepException("Error running Ansible.", e, AnsibleFailureReason.AnsibleError, entry.getNodename());
     }
-
-    PluginLogger logger = context.getLogger();
-    logger.log(Project.MSG_INFO, runner.getOutput());
 
     if (result != 0) {
       throw new NodeStepException("Ansible exited with non-zero code.", AnsibleFailureReason.AnsibleNonZero, entry.getNodename());
