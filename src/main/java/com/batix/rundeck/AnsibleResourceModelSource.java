@@ -21,11 +21,13 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
   final boolean gatherFacts;
   final String limit;
   final String extraArgs;
+  final String ignoreTagPrefix;
 
   public AnsibleResourceModelSource(Properties configuration) {
     gatherFacts = "true".equals(configuration.get("gatherFacts"));
     limit = (String) configuration.get("limit");
     extraArgs = (String) configuration.get("extraArgs");
+    ignoreTagPrefix = (String) configuration.get("ignoreTagPrefix");
   }
 
   @Override
@@ -108,6 +110,7 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
 
           HashSet<String> tags = new HashSet<>();
           for (JsonElement ele : root.getAsJsonArray("group_names")) {
+            if (ignoreTagPrefix != null && ignoreTagPrefix.length() > 0 && ele.getAsString().startsWith(ignoreTagPrefix)) continue;
             tags.add(ele.getAsString());
           }
           node.setTags(tags);

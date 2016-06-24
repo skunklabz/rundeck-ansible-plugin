@@ -48,6 +48,13 @@ public class AnsibleResourceModelSourceFactory implements ResourceModelSourceFac
         false,
         null
       ))
+      .property(PropertyUtil.string(
+        "ignoreTagPrefix",
+        "Ignore tags with this prefix",
+        "Leave blank to import all groups as tags or specify a prefix string, groups starting with this string won't be added as tags.",
+        false,
+        ""
+      ))
       .build();
   }
 }
