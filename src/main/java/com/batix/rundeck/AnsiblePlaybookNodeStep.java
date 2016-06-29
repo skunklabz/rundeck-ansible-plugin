@@ -7,14 +7,22 @@ import com.dtolabs.rundeck.core.plugins.Plugin;
 import com.dtolabs.rundeck.core.plugins.configuration.Describable;
 import com.dtolabs.rundeck.core.plugins.configuration.Description;
 import com.dtolabs.rundeck.core.plugins.configuration.PropertyUtil;
+import com.dtolabs.rundeck.core.plugins.configuration.PropertyScope;
+import com.dtolabs.rundeck.core.storage.ResourceMeta;
+import com.dtolabs.rundeck.core.storage.StorageTree;
 import com.dtolabs.rundeck.plugins.PluginLogger;
 import com.dtolabs.rundeck.plugins.ServiceNameConstants;
 import com.dtolabs.rundeck.plugins.step.NodeStepPlugin;
 import com.dtolabs.rundeck.plugins.step.PluginStepContext;
 import com.dtolabs.rundeck.plugins.util.DescriptionBuilder;
 import org.apache.tools.ant.Project;
+import org.rundeck.storage.api.Resource;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Map;
+import java.util.HashMap;
+
 
 @Plugin(name = AnsiblePlaybookNodeStep.SERVICE_PROVIDER_NAME, service = ServiceNameConstants.WorkflowNodeStep)
 public class AnsiblePlaybookNodeStep implements NodeStepPlugin, Describable {
@@ -24,10 +32,27 @@ public class AnsiblePlaybookNodeStep implements NodeStepPlugin, Describable {
   public void executeNodeStep(PluginStepContext context, Map<String, Object> configuration, INodeEntry entry) throws NodeStepException {
     String playbook = (String) configuration.get("playbook");
     String extraArgs = (String) configuration.get("extraArgs");
-    final PluginLogger logger = context.getLogger();
+    String vaultPass = (String) configuration.get("vaultPass");
 
-    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(entry.getNodename()).extraArgs(extraArgs).stream();
-    if ("true".equals(System.getProperty("ansible.debug"))) {
+    final PluginLogger logger = context.getLogger();
+    Map<java.lang.String,java.lang.String> jobConfig = context.getDataContext().get("job");
+
+    if (vaultPass != null && vaultPass.length() > 0) {
+        Resource<ResourceMeta> resource  = context.getExecutionContext().getStorageTree().getResource(vaultPass);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        try {
+          resource.getContents().writeContent(byteArrayOutputStream);
+        } catch (IOException e) {
+           throw new NodeStepException("Error reading vault password from storage Tier.", e, AnsibleFailureReason.StorageTierAccessError, entry.getNodename());
+        }
+        vaultPass = new String(byteArrayOutputStream.toByteArray());
+    } else {
+        vaultPass = "";
+    }
+
+    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(entry.getNodename()).extraArgs(extraArgs).vaultPass(vaultPass).stream();
+
+    if (jobConfig.get("loglevel").equals("DEBUG")) {
       runner.debug();
     }
 
@@ -50,6 +75,12 @@ public class AnsiblePlaybookNodeStep implements NodeStepPlugin, Describable {
     }
   }
 
+  private Map<String, Object> getVaultPassRenderParameters() {
+    Map<String,Object> renderParameter =  new HashMap<String, Object>();
+    renderParameter.put("selectionAccessor",new String("STORAGE_PATH"));
+    return renderParameter;
+  }
+
   @Override
   public Description getDescription() {
     return DescriptionBuilder.builder()
@@ -70,6 +101,16 @@ public class AnsiblePlaybookNodeStep implements NodeStepPlugin, Describable {
         "Extra Arguments for the Ansible process",
         false,
         null
+      ))
+      .property(PropertyUtil.string(
+        "vaultPass",
+        "Vault Password",
+        "Vault Password used to decrypt group variables",
+        false,
+        null,
+        null,
+        PropertyScope.Unspecified,
+        this.getVaultPassRenderParameters()
       ))
       .build();
   }

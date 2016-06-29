@@ -70,6 +70,7 @@ class AnsibleRunner {
   private String module;
   private String arg;
   private String extraArgs;
+  private String vaultPass;
   private String playbook;
   private boolean debug;
   private Path tempDirectory;
@@ -101,6 +102,17 @@ class AnsibleRunner {
   public AnsibleRunner extraArgs(String args) {
     if (args != null && args.length() > 0) {
       extraArgs = args;
+    }
+    return this;
+  }
+
+  /**
+   * Vault Password
+   * @param pass  vault password to be used to decrypt group variables
+   */
+  public AnsibleRunner vaultPass(String pass) {
+    if (pass != null && pass.length() > 0) {
+      vaultPass = pass;
     }
     return this;
   }
@@ -196,6 +208,7 @@ class AnsibleRunner {
     }
 
     File tempFile = null;
+    File tempVaultFile = null;
 
     List<String> procArgs = new ArrayList<>();
     procArgs.add(type.command);
@@ -243,6 +256,12 @@ class AnsibleRunner {
         System.out.println("tokenized: " + tokenizeCommand(extraArgs));
       }
       procArgs.addAll(tokenizeCommand(extraArgs));
+    }
+
+    if (vaultPass != null && vaultPass.length() > 0) {
+      tempVaultFile = File.createTempFile("ansible-runner", "vault");
+      Files.write(tempVaultFile.toPath(), vaultPass.toString().getBytes());
+      procArgs.add("--vault-password-file" + "=" + tempVaultFile.getAbsolutePath());
     }
 
     if (debug) {
@@ -296,6 +315,9 @@ class AnsibleRunner {
 
     if (tempFile != null && !tempFile.delete()) {
       tempFile.deleteOnExit();
+    }
+    if (tempVaultFile != null && !tempVaultFile.delete()) {
+      tempVaultFile.deleteOnExit();
     }
     if (tempDirectory != null && !retainTempDirectory) {
       Files.walkFileTree(tempDirectory, new SimpleFileVisitor<Path>() {
