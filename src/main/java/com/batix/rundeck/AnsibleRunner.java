@@ -260,7 +260,7 @@ class AnsibleRunner {
 
     if (vaultPass != null && vaultPass.length() > 0) {
       tempVaultFile = File.createTempFile("ansible-runner", "vault");
-      Files.write(tempVaultFile.toPath(), vaultPass.toString().getBytes());
+      Files.write(tempVaultFile.toPath(), vaultPass.getBytes());
       procArgs.add("--vault-password-file" + "=" + tempVaultFile.getAbsolutePath());
     }
 

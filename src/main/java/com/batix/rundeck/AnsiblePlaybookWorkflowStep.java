@@ -1,27 +1,23 @@
 package com.batix.rundeck;
 
-import com.dtolabs.rundeck.core.common.IRundeckProject;
 import com.dtolabs.rundeck.core.execution.workflow.steps.StepException;
 import com.dtolabs.rundeck.core.plugins.Plugin;
 import com.dtolabs.rundeck.core.plugins.configuration.Describable;
 import com.dtolabs.rundeck.core.plugins.configuration.Description;
-import com.dtolabs.rundeck.core.plugins.configuration.PropertyUtil;
 import com.dtolabs.rundeck.core.plugins.configuration.PropertyScope;
+import com.dtolabs.rundeck.core.plugins.configuration.PropertyUtil;
 import com.dtolabs.rundeck.core.storage.ResourceMeta;
-import com.dtolabs.rundeck.core.storage.StorageTree;
 import com.dtolabs.rundeck.plugins.PluginLogger;
 import com.dtolabs.rundeck.plugins.ServiceNameConstants;
 import com.dtolabs.rundeck.plugins.step.PluginStepContext;
 import com.dtolabs.rundeck.plugins.step.StepPlugin;
 import com.dtolabs.rundeck.plugins.util.DescriptionBuilder;
-import org.rundeck.storage.api.Resource;
-
 import org.apache.tools.ant.Project;
+import org.rundeck.storage.api.Resource;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Map;
-import java.util.HashMap;
 
 @Plugin(name = AnsiblePlaybookWorkflowStep.SERVICE_PROVIDER_NAME, service = ServiceNameConstants.WorkflowStep)
 public class AnsiblePlaybookWorkflowStep implements StepPlugin, Describable {
@@ -74,12 +70,6 @@ public class AnsiblePlaybookWorkflowStep implements StepPlugin, Describable {
     }
   }
 
-  private Map<String, Object> getVaultPassRenderParameters() {
-    Map<String,Object> renderParameter =  new HashMap<String, Object>();
-    renderParameter.put("selectionAccessor",new String("STORAGE_PATH"));
-    return renderParameter;
-  }
-
   @Override
   public Description getDescription() {
     return DescriptionBuilder.builder()
@@ -109,7 +99,7 @@ public class AnsiblePlaybookWorkflowStep implements StepPlugin, Describable {
         null,
         null,
         PropertyScope.Unspecified,
-        this.getVaultPassRenderParameters()
+        AnsibleCommon.getRenderParametersForStoragePath()
       ))
       .build();
   }
