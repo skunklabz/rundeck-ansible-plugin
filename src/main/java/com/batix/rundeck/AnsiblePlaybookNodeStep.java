@@ -59,7 +59,7 @@ public class AnsiblePlaybookNodeStep implements NodeStepPlugin, Describable {
     runner.listener(new AnsibleRunner.Listener() {
       @Override
       public void output(String line) {
-        logger.log(Project.MSG_INFO, line);
+        System.out.println(line);
       }
     });
 

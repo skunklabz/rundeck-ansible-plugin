@@ -34,7 +34,7 @@ public class AnsibleModuleWorkflowStep implements StepPlugin, Describable {
     runner.listener(new AnsibleRunner.Listener() {
       @Override
       public void output(String line) {
-        logger.log(Project.MSG_INFO, line);
+        System.out.println(line);
       }
     });
 

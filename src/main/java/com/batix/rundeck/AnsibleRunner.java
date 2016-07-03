@@ -272,18 +272,21 @@ class AnsibleRunner {
       .command(procArgs)
       .directory(tempDirectory.toFile()); // set cwd
     File outputFile = null;
+
+    // redirect stderr to stdout
+    processBuilder.redirectErrorStream(true);
+
     if (!stream) {
       outputFile = File.createTempFile("ansible-runner", "output");
       processBuilder
-        .redirectErrorStream(true) // redirect stderr to stdout
         .redirectOutput(outputFile); // redirect to file, stream might block on too much output
     }
     Process proc = processBuilder.start();
 
     if (stream) {
-      InputStream stdout = proc.getInputStream();
-      InputStreamReader in = new InputStreamReader(stdout);
+      InputStreamReader in = new InputStreamReader( proc.getInputStream() );
       LineNumberReader lines = new LineNumberReader(in);
+
       String line;
       StringBuilder sb = new StringBuilder();
       while ((line = lines.readLine()) != null) {
@@ -334,7 +337,6 @@ class AnsibleRunner {
         }
       });
     }
-
     return result;
   }
 
