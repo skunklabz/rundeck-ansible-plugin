@@ -1,18 +1,22 @@
 package com.batix.rundeck;
 
-import com.dtolabs.rundeck.core.common.IRundeckProject;
 import com.dtolabs.rundeck.core.execution.workflow.steps.StepException;
 import com.dtolabs.rundeck.core.plugins.Plugin;
 import com.dtolabs.rundeck.core.plugins.configuration.Describable;
 import com.dtolabs.rundeck.core.plugins.configuration.Description;
+import com.dtolabs.rundeck.core.plugins.configuration.PropertyScope;
 import com.dtolabs.rundeck.core.plugins.configuration.PropertyUtil;
+import com.dtolabs.rundeck.core.storage.ResourceMeta;
 import com.dtolabs.rundeck.plugins.PluginLogger;
 import com.dtolabs.rundeck.plugins.ServiceNameConstants;
 import com.dtolabs.rundeck.plugins.step.PluginStepContext;
 import com.dtolabs.rundeck.plugins.step.StepPlugin;
 import com.dtolabs.rundeck.plugins.util.DescriptionBuilder;
 import org.apache.tools.ant.Project;
+import org.rundeck.storage.api.Resource;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Map;
 
 @Plugin(name = AnsiblePlaybookWorkflowStep.SERVICE_PROVIDER_NAME, service = ServiceNameConstants.WorkflowStep)
@@ -23,10 +27,27 @@ public class AnsiblePlaybookWorkflowStep implements StepPlugin, Describable {
   public void executeStep(PluginStepContext context, Map<String, Object> configuration) throws StepException {
     String playbook = (String) configuration.get("playbook");
     String extraArgs = (String) configuration.get("extraArgs");
-    final PluginLogger logger = context.getLogger();
+    String vaultPass = (String) configuration.get("vaultPass");
 
-    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(context.getNodes()).extraArgs(extraArgs).stream();
-    if ("true".equals(System.getProperty("ansible.debug"))) {
+    final PluginLogger logger = context.getLogger();
+    Map<java.lang.String,java.lang.String> jobConfig = context.getDataContext().get("job");
+
+    if (vaultPass != null && vaultPass.length() > 0) {
+        Resource<ResourceMeta> resource  = context.getExecutionContext().getStorageTree().getResource(vaultPass);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        try {
+          resource.getContents().writeContent(byteArrayOutputStream);
+        } catch (IOException e) {
+           throw new StepException("Error reading vault password from storage Tier.", e, AnsibleFailureReason.StorageTierAccessError);
+        }
+        vaultPass = new String(byteArrayOutputStream.toByteArray());
+    } else {
+        vaultPass = "";
+    }
+
+    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(context.getNodes()).extraArgs(extraArgs).vaultPass(vaultPass).stream();
+
+    if (jobConfig.get("loglevel").equals("DEBUG")) {
       runner.debug();
     }
 
@@ -69,6 +90,16 @@ public class AnsiblePlaybookWorkflowStep implements StepPlugin, Describable {
         "Extra Arguments for the Ansible process",
         false,
         null
+      ))
+      .property(PropertyUtil.string(
+        "vaultPass",
+        "Vault Password",
+        "Vault Password used to decrypt group variables",
+        false,
+        null,
+        null,
+        PropertyScope.Unspecified,
+        AnsibleCommon.getRenderParametersForStoragePath()
       ))
       .build();
   }
