@@ -71,6 +71,7 @@ class AnsibleRunner {
   private String arg;
   private String extraArgs;
   private String vaultPass;
+  private String sshPass;
   private String playbook;
   private boolean debug;
   private Path tempDirectory;
@@ -102,6 +103,13 @@ class AnsibleRunner {
   public AnsibleRunner extraArgs(String args) {
     if (args != null && args.length() > 0) {
       extraArgs = args;
+    }
+    return this;
+  }
+
+  public AnsibleRunner sshPass(String pass) {
+    if (pass != null && pass.length() > 0) {
+      sshPass = pass;
     }
     return this;
   }
@@ -279,6 +287,13 @@ class AnsibleRunner {
         .redirectOutput(outputFile); // redirect to file, stream might block on too much output
     }
     Process proc = processBuilder.start();
+
+    if ((tokenizeCommand(extraArgs).contains("-k") || tokenizeCommand(extraArgs).contains("--ask-pass")) && (sshPass != null && sshPass.length() > 0)) {
+      OutputStream stdin = proc.getOutputStream();
+      OutputStreamWriter out = new OutputStreamWriter(stdin);
+      out.write(sshPass+"\n");
+      out.close();
+    }
 
     if (stream) {
       InputStream stdout = proc.getInputStream();

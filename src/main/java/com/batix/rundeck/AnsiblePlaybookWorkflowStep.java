@@ -28,6 +28,8 @@ public class AnsiblePlaybookWorkflowStep implements StepPlugin, Describable {
     String playbook = (String) configuration.get("playbook");
     String extraArgs = (String) configuration.get("extraArgs");
     String vaultPass = (String) configuration.get("vaultPass");
+    Map<java.lang.String,java.lang.String> privateOptionConfig = context.getExecutionContext().getPrivateDataContext().get("option");
+    String sshPass = (String) privateOptionConfig.get("sshPassword");
 
     final PluginLogger logger = context.getLogger();
     Map<java.lang.String,java.lang.String> jobConfig = context.getDataContext().get("job");
@@ -45,7 +47,7 @@ public class AnsiblePlaybookWorkflowStep implements StepPlugin, Describable {
         vaultPass = "";
     }
 
-    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(context.getNodes()).extraArgs(extraArgs).vaultPass(vaultPass).stream();
+    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(context.getNodes()).extraArgs(extraArgs).vaultPass(vaultPass).sshPass(sshPass).stream();
 
     if (jobConfig.get("loglevel").equals("DEBUG")) {
       runner.debug();
