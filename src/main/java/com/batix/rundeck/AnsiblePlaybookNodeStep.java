@@ -1,15 +1,13 @@
 package com.batix.rundeck;
 
 import com.dtolabs.rundeck.core.common.INodeEntry;
-import com.dtolabs.rundeck.core.common.IRundeckProject;
 import com.dtolabs.rundeck.core.execution.workflow.steps.node.NodeStepException;
 import com.dtolabs.rundeck.core.plugins.Plugin;
 import com.dtolabs.rundeck.core.plugins.configuration.Describable;
 import com.dtolabs.rundeck.core.plugins.configuration.Description;
-import com.dtolabs.rundeck.core.plugins.configuration.PropertyUtil;
 import com.dtolabs.rundeck.core.plugins.configuration.PropertyScope;
+import com.dtolabs.rundeck.core.plugins.configuration.PropertyUtil;
 import com.dtolabs.rundeck.core.storage.ResourceMeta;
-import com.dtolabs.rundeck.core.storage.StorageTree;
 import com.dtolabs.rundeck.plugins.PluginLogger;
 import com.dtolabs.rundeck.plugins.ServiceNameConstants;
 import com.dtolabs.rundeck.plugins.step.NodeStepPlugin;
@@ -21,7 +19,6 @@ import org.rundeck.storage.api.Resource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Map;
-import java.util.HashMap;
 
 
 @Plugin(name = AnsiblePlaybookNodeStep.SERVICE_PROVIDER_NAME, service = ServiceNameConstants.WorkflowNodeStep)
@@ -65,12 +62,6 @@ public class AnsiblePlaybookNodeStep implements NodeStepPlugin, Describable {
     }
   }
 
-  private Map<String, Object> getVaultPassRenderParameters() {
-    Map<String,Object> renderParameter =  new HashMap<String, Object>();
-    renderParameter.put("selectionAccessor",new String("STORAGE_PATH"));
-    return renderParameter;
-  }
-
   @Override
   public Description getDescription() {
     return DescriptionBuilder.builder()
@@ -100,7 +91,7 @@ public class AnsiblePlaybookNodeStep implements NodeStepPlugin, Describable {
         null,
         null,
         PropertyScope.Unspecified,
-        this.getVaultPassRenderParameters()
+        AnsibleCommon.getRenderParametersForStoragePath()
       ))
       .build();
   }

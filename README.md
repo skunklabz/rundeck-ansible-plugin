@@ -64,7 +64,7 @@ Run a playbook as a node or workflow step (see note above). You specify a path t
 
 ## Debugging ##
 
-If anything goes wrong you can enable debugging for all components. Just add a Java system property named `ansible.debug` with the value `true`. You can do that for example in `/etc/rundeck/profile`, make sure to restart your rundeck service.
+If anything goes wrong you can enable debugging for all components. Just enable the DEBUG log level for your jobs and add a Java system property named `ansible.debug` with the value `true`. You can do that for example in `/etc/rundeck/profile`, make sure to restart your rundeck service.
 
 This will print extra info either in some logs (e.g. `/var/log/rundeck/service.log`) or the web console. If you file an issue, make sure to include as much information in your report as you can.
 
