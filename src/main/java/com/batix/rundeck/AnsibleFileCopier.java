@@ -13,6 +13,7 @@ import com.dtolabs.rundeck.core.plugins.configuration.Description;
 import com.dtolabs.rundeck.core.plugins.configuration.PropertyUtil;
 import com.dtolabs.rundeck.plugins.ServiceNameConstants;
 import com.dtolabs.rundeck.plugins.util.DescriptionBuilder;
+import com.dtolabs.rundeck.plugins.PluginLogger;
 
 import java.io.File;
 import java.io.InputStream;
@@ -59,7 +60,9 @@ public class AnsibleFileCopier implements DestinationFileCopier, Describable {
     final INodeEntry node,
     String destinationPath
   ) throws FileCopierException {
+
     IRundeckProject project = context.getFramework().getFrameworkProjectMgr().getFrameworkProject(context.getFrameworkProject());
+
     if (destinationPath == null) {
       String identity = (context.getDataContext() != null && context.getDataContext().get("job") != null) ?
         context.getDataContext().get("job").get("execid") : null;
@@ -91,10 +94,6 @@ public class AnsibleFileCopier implements DestinationFileCopier, Describable {
       result = runner.run();
     } catch (Exception e) {
       throw new FileCopierException("Error running Ansible.", AnsibleFailureReason.AnsibleError, e);
-    }
-
-    if (result != 0) {
-      throw new FileCopierException("Ansible exited with non-zero code.", AnsibleFailureReason.AnsibleNonZero);
     }
 
     return destinationPath;

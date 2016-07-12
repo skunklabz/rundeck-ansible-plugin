@@ -49,28 +49,21 @@ public class AnsiblePlaybookWorkflowStep implements StepPlugin, Describable {
         vaultPass = "";
     }
 
-    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(context.getNodes()).extraArgs(extraArgs).vaultPass(vaultPass).stream();
+    // Configure the ansible runner
+    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(context.getNodes()).extraArgs(extraArgs).vaultPass(vaultPass).setLogger(logger);
 
+    // Set the logging level
     if (jobConfig.get("loglevel").equals("DEBUG")) {
       runner.debug();
     }
 
-    runner.listener(new AnsibleRunner.Listener() {
-      @Override
-      public void output(String line) {
-        System.out.println(line);
-      }
-    });
-
-    int result;
+    // ansible runner will take care of handling exceptions, here handle only jobs specific stuff
     try {
-      result = runner.run();
+        runner.run();
+    } catch (AnsibleStepException e) {
+        throw new StepException(e.getMessage(), e, e.getFailureReason());
     } catch (Exception e) {
-      throw new StepException("Error running Ansible.", e, AnsibleFailureReason.AnsibleError);
-    }
-
-    if (result != 0) {
-      throw new StepException("Ansible exited with non-zero code.", AnsibleFailureReason.AnsibleNonZero);
+        throw new StepException(e.getMessage(),e,AnsibleFailureReason.AnsibleError);
     }
   }
 

@@ -27,27 +27,17 @@ public class AnsibleModuleNodeStep implements NodeStepPlugin, Describable {
     String extraArgs = (String) configuration.get("extraArgs");
     final PluginLogger logger = context.getLogger();
 
-    AnsibleRunner runner = AnsibleRunner.adHoc(module, args).limit(entry.getNodename()).extraArgs(extraArgs).stream();
+    AnsibleRunner runner = AnsibleRunner.adHoc(module, args).limit(entry.getNodename()).extraArgs(extraArgs).setLogger(logger);
+
     if ("true".equals(System.getProperty("ansible.debug"))) {
       runner.debug();
     }
-
-    runner.listener(new AnsibleRunner.Listener() {
-      @Override
-      public void output(String line) {
-        System.out.println(line);
-      }
-    });
 
     int result;
     try {
       result = runner.run();
     } catch (Exception e) {
       throw new NodeStepException("Error running Ansible.", e, AnsibleFailureReason.AnsibleError, entry.getNodename());
-    }
-
-    if (result != 0) {
-      throw new NodeStepException("Ansible exited with non-zero code.", AnsibleFailureReason.AnsibleNonZero, entry.getNodename());
     }
   }
 

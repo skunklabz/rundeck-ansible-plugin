@@ -50,28 +50,18 @@ public class AnsiblePlaybookNodeStep implements NodeStepPlugin, Describable {
         vaultPass = "";
     }
 
-    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(entry.getNodename()).extraArgs(extraArgs).vaultPass(vaultPass).stream();
+    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(entry.getNodename()).extraArgs(extraArgs).vaultPass(vaultPass).setLogger(logger);
 
     if (jobConfig.get("loglevel").equals("DEBUG")) {
       runner.debug();
     }
 
-    runner.listener(new AnsibleRunner.Listener() {
-      @Override
-      public void output(String line) {
-        System.out.println(line);
-      }
-    });
-
-    int result;
     try {
-      result = runner.run();
+        runner.run();
+    } catch (AnsibleStepException e) {
+        throw new NodeStepException("Error running Ansible Node Step.", e, e.getFailureReason(), entry.getNodename());
     } catch (Exception e) {
-      throw new NodeStepException("Error running Ansible.", e, AnsibleFailureReason.AnsibleError, entry.getNodename());
-    }
-
-    if (result != 0) {
-      throw new NodeStepException("Ansible exited with non-zero code.", AnsibleFailureReason.AnsibleNonZero, entry.getNodename());
+        throw new NodeStepException(e.getMessage(), e, AnsibleFailureReason.AnsibleError, entry.getNodename());
     }
   }
 
