@@ -24,9 +24,11 @@ public class AnsibleModuleWorkflowStep implements StepPlugin, Describable {
     String module = (String) configuration.get("module");
     String args = (String) configuration.get("args");
     String extraArgs = (String) configuration.get("extraArgs");
+    Map<java.lang.String,java.lang.String> privateOptionConfig = context.getExecutionContext().getPrivateDataContext().get("option");
+    String sshPass = (String) privateOptionConfig.get("sshPassword");
     final PluginLogger logger = context.getLogger();
 
-    AnsibleRunner runner = AnsibleRunner.adHoc(module, args).limit(context.getNodes()).extraArgs(extraArgs).stream();
+    AnsibleRunner runner = AnsibleRunner.adHoc(module, args).limit(context.getNodes()).extraArgs(extraArgs).sshPass(sshPass).stream();
     if ("true".equals(System.getProperty("ansible.debug"))) {
       runner.debug();
     }
