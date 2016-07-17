@@ -6,6 +6,7 @@ import com.dtolabs.rundeck.core.plugins.Plugin;
 import com.dtolabs.rundeck.core.plugins.configuration.Describable;
 import com.dtolabs.rundeck.core.plugins.configuration.Description;
 import com.dtolabs.rundeck.core.plugins.configuration.PropertyUtil;
+import com.dtolabs.rundeck.core.plugins.configuration.PropertyScope;
 import com.dtolabs.rundeck.plugins.PluginLogger;
 import com.dtolabs.rundeck.plugins.ServiceNameConstants;
 import com.dtolabs.rundeck.plugins.step.PluginStepContext;
@@ -24,9 +25,10 @@ public class AnsibleModuleWorkflowStep implements StepPlugin, Describable {
     String module = (String) configuration.get("module");
     String args = (String) configuration.get("args");
     String extraArgs = (String) configuration.get("extraArgs");
+    String sshPass = (String) configuration.get("sshPassword");
     final PluginLogger logger = context.getLogger();
 
-    AnsibleRunner runner = AnsibleRunner.adHoc(module, args).limit(context.getNodes()).extraArgs(extraArgs).stream();
+    AnsibleRunner runner = AnsibleRunner.adHoc(module, args).limit(context.getNodes()).extraArgs(extraArgs).sshPass(sshPass).stream();
     if ("true".equals(System.getProperty("ansible.debug"))) {
       runner.debug();
     }
@@ -76,6 +78,16 @@ public class AnsibleModuleWorkflowStep implements StepPlugin, Describable {
         "Extra Arguments for the Ansible process",
         false,
         null
+      ))
+      .property(PropertyUtil.string(
+        "sshPassword",
+        "SSH Password",
+        "ssh password passed to ansible job using Private data context.",
+        false,
+        "option.sshpassword",
+        null,
+        PropertyScope.Unspecified,
+        AnsibleCommon.getRenderParametersForSshPassword()
       ))
       .build();
   }
