@@ -28,9 +28,7 @@ public class AnsiblePlaybookWorkflowStep implements StepPlugin, Describable {
     String playbook = (String) configuration.get("playbook");
     String extraArgs = (String) configuration.get("extraArgs");
     String vaultPass = (String) configuration.get("vaultPass");
-    Map<java.lang.String,java.lang.String> privateOptionConfig = context.getExecutionContext().getPrivateDataContext().get("option");
-    String sshPass = (String) privateOptionConfig.get("sshPassword");
-
+    String sshPass = (String) configuration.get("sshPassword");
     final PluginLogger logger = context.getLogger();
     Map<java.lang.String,java.lang.String> jobConfig = context.getDataContext().get("job");
 
@@ -102,6 +100,16 @@ public class AnsiblePlaybookWorkflowStep implements StepPlugin, Describable {
         null,
         PropertyScope.Unspecified,
         AnsibleCommon.getRenderParametersForStoragePath()
+      ))
+      .property(PropertyUtil.string(
+        "sshPassword",
+        "SSH Password",
+        "ssh password passed to ansible job using Private data context.",
+        false,
+        "option.sshpassword",
+        null,
+        PropertyScope.Unspecified,
+        AnsibleCommon.getRenderParametersForSshPassword()
       ))
       .build();
   }
