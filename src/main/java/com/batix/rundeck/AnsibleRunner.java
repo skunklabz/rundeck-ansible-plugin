@@ -264,7 +264,7 @@ class AnsibleRunner {
     try {
       proc = processBuilder.start();
 
-      if ((tokenizeCommand(extraArgs).contains("-k") || tokenizeCommand(extraArgs).contains("--ask-pass")) && (sshPass != null && sshPass.length() > 0)) {
+      if ( (procArgs.contains("-k") || procArgs.contains("--ask-pass")) && (sshPass != null && sshPass.length() > 0)) {
          OutputStream stdin = proc.getOutputStream();
          OutputStreamWriter out = new OutputStreamWriter(stdin);
          out.write(sshPass+"\n");
