@@ -4,6 +4,7 @@ import com.dtolabs.rundeck.core.common.INodeEntry;
 import com.dtolabs.rundeck.core.common.IRundeckProject;
 import com.dtolabs.rundeck.core.common.ProjectManager;
 import com.dtolabs.rundeck.core.execution.ExecutionContext;
+import com.dtolabs.rundeck.plugins.PluginLogger;
 import com.dtolabs.rundeck.core.execution.service.NodeExecutor;
 import com.dtolabs.rundeck.core.execution.service.NodeExecutorResult;
 import com.dtolabs.rundeck.core.execution.service.NodeExecutorResultImpl;
@@ -23,6 +24,7 @@ public class AnsibleNodeExecutor implements NodeExecutor, Describable {
 
   @Override
   public NodeExecutorResult executeCommand(ExecutionContext context, String[] command, INodeEntry node) {
+
     StringBuilder cmdArgs = new StringBuilder();
     ProjectManager projectManager = context.getFramework().getProjectManager();
     IRundeckProject project = projectManager.getFrameworkProject(context.getFrameworkProject());
@@ -35,35 +37,16 @@ public class AnsibleNodeExecutor implements NodeExecutor, Describable {
     String extraArgs = project.hasProperty("extraArgs") ? project.getProperty("extraArgs") : null;
 
     AnsibleRunner runner = AnsibleRunner.adHoc("shell", cmdArgs.toString()).limit(node.getNodename()).extraArgs(extraArgs);
+
     if ("true".equals(System.getProperty("ansible.debug"))) {
       runner.debug();
     }
+
     int result;
     try {
       result = runner.run();
     } catch (Exception e) {
-      System.out.println(e.getMessage());
-      e.printStackTrace();
       return NodeExecutorResultImpl.createFailure(AnsibleFailureReason.AnsibleError, e.getMessage(), e, node, runner.getResult());
-    }
-
-    JsonObject json = runner.getResults().get(0).results.size() > 0 ? runner.getResults().get(0).results.get(0).json : null;
-
-    if (json != null && json.has("stdout")) {
-      String string = json.get("stdout").getAsString();
-      if (string != null && string.length() > 0) {
-        System.out.println(string);
-      }
-    }
-    if (json != null && json.has("stderr")) {
-      String string = json.get("stderr").getAsString();
-      if (string != null && string.length() > 0) {
-        System.err.println(string);
-      }
-    }
-
-    if (result != 0) {
-      return NodeExecutorResultImpl.createFailure(AnsibleFailureReason.AnsibleNonZero, "Ansible exited with non-zero code.", node, result);
     }
 
     return NodeExecutorResultImpl.createSuccess(node);

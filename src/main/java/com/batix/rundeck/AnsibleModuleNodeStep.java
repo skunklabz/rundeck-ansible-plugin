@@ -29,27 +29,17 @@ public class AnsibleModuleNodeStep implements NodeStepPlugin, Describable {
     String sshPass = (String) configuration.get("sshPassword");
     final PluginLogger logger = context.getLogger();
 
-    AnsibleRunner runner = AnsibleRunner.adHoc(module, args).limit(entry.getNodename()).extraArgs(extraArgs).sshPass(sshPass).stream();
+    AnsibleRunner runner = AnsibleRunner.adHoc(module, args).limit(entry.getNodename()).extraArgs(extraArgs).sshPass(sshPass);
+
     if ("true".equals(System.getProperty("ansible.debug"))) {
       runner.debug();
     }
-
-    runner.listener(new AnsibleRunner.Listener() {
-      @Override
-      public void output(String line) {
-        logger.log(Project.MSG_INFO, line);
-      }
-    });
 
     int result;
     try {
       result = runner.run();
     } catch (Exception e) {
       throw new NodeStepException("Error running Ansible.", e, AnsibleFailureReason.AnsibleError, entry.getNodename());
-    }
-
-    if (result != 0) {
-      throw new NodeStepException("Ansible exited with non-zero code.", AnsibleFailureReason.AnsibleNonZero, entry.getNodename());
     }
   }
 

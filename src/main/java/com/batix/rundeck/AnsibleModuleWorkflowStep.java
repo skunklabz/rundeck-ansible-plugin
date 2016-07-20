@@ -28,27 +28,17 @@ public class AnsibleModuleWorkflowStep implements StepPlugin, Describable {
     String sshPass = (String) configuration.get("sshPassword");
     final PluginLogger logger = context.getLogger();
 
-    AnsibleRunner runner = AnsibleRunner.adHoc(module, args).limit(context.getNodes()).extraArgs(extraArgs).sshPass(sshPass).stream();
+    AnsibleRunner runner = AnsibleRunner.adHoc(module, args).limit(context.getNodes()).extraArgs(extraArgs).sshPass(sshPass);
+    
     if ("true".equals(System.getProperty("ansible.debug"))) {
       runner.debug();
     }
 
-    runner.listener(new AnsibleRunner.Listener() {
-      @Override
-      public void output(String line) {
-        logger.log(Project.MSG_INFO, line);
-      }
-    });
-
     int result;
     try {
-      result = runner.run();
+        result = runner.run();
     } catch (Exception e) {
-      throw new StepException("Error running Ansible.", e, AnsibleFailureReason.AnsibleError);
-    }
-
-    if (result != 0) {
-      throw new StepException("Ansible exited with non-zero code.", AnsibleFailureReason.AnsibleNonZero);
+        throw new StepException("Error running Ansible.", e, AnsibleFailureReason.AnsibleError);
     }
   }
 

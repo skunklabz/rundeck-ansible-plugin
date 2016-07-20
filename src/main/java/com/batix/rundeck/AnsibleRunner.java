@@ -1,10 +1,11 @@
 package com.batix.rundeck;
 
 import com.batix.rundeck.ext.ArgumentTokenizer;
-import com.dtolabs.rundeck.core.common.INodeSet;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.batix.rundeck.utils.Listener;
+import com.batix.rundeck.utils.Logging;
+import com.batix.rundeck.utils.ListenerFactory;
 
+import com.dtolabs.rundeck.core.common.INodeSet;
 import java.io.*;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -14,10 +15,9 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 class AnsibleRunner {
+
   enum AnsibleCommand {
     AdHoc("ansible"),
     Playbook("ansible-playbook");
@@ -55,16 +55,8 @@ class AnsibleRunner {
     return args;
   }
 
-  private static final Pattern pHostPlaybook = Pattern.compile(
-    "^(.+?): \\[(.+?)\\] => (\\{.+?\\})$"
-  );
-  private static final Pattern pTask = Pattern.compile(
-    "^TASK \\[(.+?)\\].*$"
-  );
-
   private boolean done = false;
   private String output;
-  private final List<AnsibleTask> results = new ArrayList<>();
 
   private final AnsibleCommand type;
   private String module;
@@ -78,8 +70,7 @@ class AnsibleRunner {
   private boolean retainTempDirectory;
   private final List<String> limits = new ArrayList<>();
   private int result;
-  private boolean doParseOutput;
-  private boolean stream;
+
   private Listener listener;
 
   private AnsibleRunner(AnsibleCommand type) {
@@ -126,6 +117,15 @@ class AnsibleRunner {
   }
 
   /**
+   * Set the listener to notify, when run in stream mode, see {@link #stream()}
+   * @param listener  the listener which will receive output lines
+   */
+  public AnsibleRunner listener(Listener listener) {
+    this.listener = listener;
+    return this;
+  }
+
+  /**
    * Run Ansible with -vvvv and print the command and output to the console / log
    */
   public AnsibleRunner debug() {
@@ -137,45 +137,6 @@ class AnsibleRunner {
    */
   public AnsibleRunner debug(boolean debug) {
     this.debug = debug;
-    return this;
-  }
-
-  /**
-   * Parse output to collect stdout/stderr, forces -v on playbooks to get some JSON
-   */
-  public AnsibleRunner doParseOutput() {
-    return doParseOutput(true);
-  }
-
-  /**
-   * Parse output to collect stdout/stderr, forces -v on playbooks to get some JSON
-   */
-  public AnsibleRunner doParseOutput(boolean doParseOutput) {
-    this.doParseOutput = doParseOutput;
-    return this;
-  }
-
-  /**
-   * Ansible output won't be logged to a file, but will be sent to a listener, see {@link #listener(Listener)}
-   */
-  public AnsibleRunner stream() {
-    return stream(true);
-  }
-
-  /**
-   * Ansible output won't be logged to a file, but will be sent to a listener, see {@link #listener(Listener)}
-   */
-  public AnsibleRunner stream(boolean stream) {
-    this.stream = stream;
-    return this;
-  }
-
-  /**
-   * Set the listener to notify, when run in stream mode, see {@link #stream()}
-   * @param listener  the listener which will receive output lines
-   */
-  public AnsibleRunner listener(Listener listener) {
-    this.listener = listener;
     return this;
   }
 
@@ -205,6 +166,22 @@ class AnsibleRunner {
     return this;
   }
 
+  public void deleteTempDirectory(Path tempDirectory) throws IOException {
+      Files.walkFileTree(tempDirectory, new SimpleFileVisitor<Path>() {
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+          Files.delete(file);
+          return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+          Files.delete(dir);
+          return FileVisitResult.CONTINUE;
+        }
+      });
+  }
+
   public int run() throws Exception {
     if (done) {
       throw new IllegalStateException("already done");
@@ -221,6 +198,7 @@ class AnsibleRunner {
     List<String> procArgs = new ArrayList<>();
     procArgs.add(type.command);
 
+    // parse arguments
     if (type == AnsibleCommand.AdHoc) {
       procArgs.add("all");
 
@@ -235,8 +213,6 @@ class AnsibleRunner {
       procArgs.add(tempDirectory.toFile().getAbsolutePath());
     } else if (type == AnsibleCommand.Playbook) {
       procArgs.add(playbook);
-
-      if (doParseOutput) procArgs.add("-v"); // to get JSON output, one line per host and task
     }
 
     if (limits.size() == 1) {
@@ -256,6 +232,8 @@ class AnsibleRunner {
 
     if (debug) {
       procArgs.add("-vvvv");
+    } else {
+      procArgs.add("-v");
     }
 
     if (extraArgs != null && extraArgs.length() > 0) {
@@ -272,164 +250,82 @@ class AnsibleRunner {
       procArgs.add("--vault-password-file" + "=" + tempVaultFile.getAbsolutePath());
     }
 
-    if (debug) {
-      System.out.println("Ansible command:\n" + procArgs);
+    // default the listener to stdout logger
+    if (listener == null) {
+        listener = ListenerFactory.getListener(System.out);
     }
 
+    // execute the ansible process
     ProcessBuilder processBuilder = new ProcessBuilder()
       .command(procArgs)
       .directory(tempDirectory.toFile()); // set cwd
-    File outputFile = null;
-    if (!stream) {
-      outputFile = File.createTempFile("ansible-runner", "output");
-      processBuilder
-        .redirectErrorStream(true) // redirect stderr to stdout
-        .redirectOutput(outputFile); // redirect to file, stream might block on too much output
-    }
-    Process proc = processBuilder.start();
+    Process proc = null;
 
-    if ((tokenizeCommand(extraArgs).contains("-k") || tokenizeCommand(extraArgs).contains("--ask-pass")) && (sshPass != null && sshPass.length() > 0)) {
-      OutputStream stdin = proc.getOutputStream();
-      OutputStreamWriter out = new OutputStreamWriter(stdin);
-      out.write(sshPass+"\n");
-      out.close();
-    }
+    try {
+      proc = processBuilder.start();
 
-    if (stream) {
-      InputStream stdout = proc.getInputStream();
-      InputStreamReader in = new InputStreamReader(stdout);
-      LineNumberReader lines = new LineNumberReader(in);
-      String line;
-      StringBuilder sb = new StringBuilder();
-      while ((line = lines.readLine()) != null) {
-        sb.append(line).append("\n");
-        if (listener != null) listener.output(line);
+      if ((tokenizeCommand(extraArgs).contains("-k") || tokenizeCommand(extraArgs).contains("--ask-pass")) && (sshPass != null && sshPass.length() > 0)) {
+         OutputStream stdin = proc.getOutputStream();
+         OutputStreamWriter out = new OutputStreamWriter(stdin);
+         out.write(sshPass+"\n");
+         out.close();
       }
-      output = sb.toString();
-    }
 
-    proc.waitFor();
-    result = proc.exitValue();
+      proc.getOutputStream().close();
+      Thread outthread = Logging.copyStreamThread(proc.getInputStream(), listener);
+      outthread.start();
+      result = proc.waitFor();
+      System.out.flush();
+      outthread.join();
 
-    if (outputFile != null) {
-      output = new String(Files.readAllBytes(outputFile.toPath()));
-      if (!outputFile.delete()) {
-        outputFile.deleteOnExit();
+      if (result != 0) {
+        // fetch the error message returned by ansible from stderr
+        StringBuilder inputStringBuilder = new StringBuilder();
+        BufferedReader bufferedReader = 
+        		new BufferedReader(new InputStreamReader(proc.getErrorStream(), "UTF-8"));
+        String line = bufferedReader.readLine();
+        while(line != null){
+            inputStringBuilder.append(line);
+            inputStringBuilder.append('\n');
+            line = bufferedReader.readLine();
+        }
+        String msg = inputStringBuilder.toString();
+        // if stdout does noy return any message just print
+        // a generic error message.
+        if (msg.length() < 1){
+           msg = "ERROR: Ansible execution returned with non zero code.";
+        }
+        throw new AnsibleStepException(msg,AnsibleFailureReason.AnsibleNonZero);
       }
-    }
-
-    if (debug) {
-      System.out.println("Ansible output:\n" + output);
-    }
-
-    if (type == AnsibleCommand.AdHoc) {
-      results.add(parseTreeDir(tempDirectory));
-    } else {
-      parseOutput();
-    }
-
-    if (tempFile != null && !tempFile.delete()) {
-      tempFile.deleteOnExit();
-    }
-    if (tempVaultFile != null && !tempVaultFile.delete()) {
-      tempVaultFile.deleteOnExit();
-    }
-    if (tempDirectory != null && !retainTempDirectory) {
-      Files.walkFileTree(tempDirectory, new SimpleFileVisitor<Path>() {
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-          Files.delete(file);
-          return FileVisitResult.CONTINUE;
+    } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new AnsibleStepException("ERROR: Ansible Execution Interrupted.", e, AnsibleFailureReason.Interrupted);
+    } catch (IOException e) {
+            throw new AnsibleStepException("ERROR: Ansible IO failure.", e, AnsibleFailureReason.IOFailure);
+    } catch (AnsibleStepException e) {
+            throw e;
+    } catch (Exception e) {
+            throw new AnsibleStepException("ERROR: Ansible execution returned with non zero code.", e, AnsibleFailureReason.Unknown);
+    } finally {
+        // Make sure to always cleanup on failure and success
+        proc.getErrorStream().close();
+        proc.getInputStream().close();
+        if (tempFile != null && !tempFile.delete()) {
+          tempFile.deleteOnExit();
         }
-
-        @Override
-        public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-          Files.delete(dir);
-          return FileVisitResult.CONTINUE;
+        if (tempVaultFile != null && !tempVaultFile.delete()) {
+          tempVaultFile.deleteOnExit();
         }
-      });
+        if (tempDirectory != null && !retainTempDirectory) {
+          deleteTempDirectory(tempDirectory);
+        }
     }
 
     return result;
-  }
-
-  private AnsibleTask parseTreeDir(Path dir) throws IOException {
-    final AnsibleTask task = new AnsibleTask();
-
-    Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {
-      @Override
-      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-        AnsibleTaskResult result = new AnsibleTaskResult();
-        task.results.add(result);
-
-        result.host = file.toFile().getName();
-        FileReader reader = new FileReader(file.toFile());
-        result.json = new JsonParser().parse(reader).getAsJsonObject();
-        reader.close();
-
-        return FileVisitResult.CONTINUE;
-      }
-    });
-
-    return task;
-  }
-
-  private void parseOutput() {
-    if (type == AnsibleCommand.Playbook && doParseOutput) {
-      // TODO not all modules print JSON with -v (e.g. debug), drop all this? it's not used either...
-      AnsibleTask curTask = null;
-
-      for (String line : output.split("\\r?\\n")) {
-        line = line.trim();
-
-        Matcher mTask = pTask.matcher(line);
-        if (mTask.find()) {
-          curTask = new AnsibleTask();
-          results.add(curTask);
-          curTask.name = mTask.group(1);
-          continue;
-        }
-
-        if (curTask == null) continue;
-
-        Matcher mHost = pHostPlaybook.matcher(line);
-        if (mHost.find()) {
-          AnsibleTaskResult taskResult = new AnsibleTaskResult();
-          curTask.results.add(taskResult);
-
-          taskResult.result = mHost.group(1);
-          taskResult.host = mHost.group(2);
-          String jsonStr = mHost.group(3);
-          taskResult.json = new JsonParser().parse(jsonStr).getAsJsonObject();
-        }
-      }
-    }
   }
 
   public int getResult() {
     return result;
   }
 
-  public String getOutput() {
-    return output;
-  }
-
-  public List<AnsibleTask> getResults() {
-    return Collections.unmodifiableList(results);
-  }
-
-  public static class AnsibleTask {
-    String name;
-    final List<AnsibleTaskResult> results = new ArrayList<>();
-  }
-
-  public static class AnsibleTaskResult {
-    String host;
-    String result;
-    JsonObject json;
-  }
-
-  public interface Listener {
-    void output(String line);
-  }
 }

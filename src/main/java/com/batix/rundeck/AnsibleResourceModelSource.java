@@ -68,9 +68,6 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
 
     try {
       int status = runner.run();
-      if (status != 0) {
-        System.out.println("error gathering facts:\n" + runner.getOutput());
-      }
     } catch (Exception e) {
       throw new ResourceModelSourceException("Error running playbook.", e);
     }
