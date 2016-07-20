@@ -1,10 +1,11 @@
 package com.batix.rundeck;
 
 import com.batix.rundeck.ext.ArgumentTokenizer;
-import com.dtolabs.rundeck.core.common.INodeSet;
-import com.dtolabs.rundeck.plugins.PluginLogger;
+import com.batix.rundeck.utils.Listener;
+import com.batix.rundeck.utils.Logging;
+import com.batix.rundeck.utils.ListenerFactory;
 
-import com.dtolabs.utils.Streams;
+import com.dtolabs.rundeck.core.common.INodeSet;
 import java.io.*;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -68,8 +69,8 @@ class AnsibleRunner {
   private boolean retainTempDirectory;
   private final List<String> limits = new ArrayList<>();
   private int result;
-  private boolean doParseOutput;
-  private PluginLogger logger = null;
+
+  private Listener listener;
 
   private AnsibleRunner(AnsibleCommand type) {
     this.type = type;
@@ -108,6 +109,15 @@ class AnsibleRunner {
   }
 
   /**
+   * Set the listener to notify, when run in stream mode, see {@link #stream()}
+   * @param listener  the listener which will receive output lines
+   */
+  public AnsibleRunner listener(Listener listener) {
+    this.listener = listener;
+    return this;
+  }
+
+  /**
    * Run Ansible with -vvvv and print the command and output to the console / log
    */
   public AnsibleRunner debug() {
@@ -127,11 +137,6 @@ class AnsibleRunner {
    */
   public AnsibleRunner retainTempDirectory() {
     return retainTempDirectory(true);
-  }
-
-  public AnsibleRunner setLogger(PluginLogger logger) {
-    this.logger = logger;
-    return this;
   }
 
   /**
@@ -237,8 +242,9 @@ class AnsibleRunner {
       procArgs.add("--vault-password-file" + "=" + tempVaultFile.getAbsolutePath());
     }
 
-    if (logger != null) {
-      logger.log(3, "[ansible-exec]: executing command: " + procArgs);
+    // default the listener to stdout logger
+    if (listener == null) {
+        listener = ListenerFactory.getListener(System.out);
     }
 
     // execute the ansible process
@@ -250,14 +256,14 @@ class AnsibleRunner {
     try {
       proc = processBuilder.start();
       proc.getOutputStream().close();
-      Thread outthread = Streams.copyStreamThread(proc.getInputStream(), System.out);
+      Thread outthread = Logging.copyStreamThread(proc.getInputStream(), listener);
       outthread.start();
       result = proc.waitFor();
       System.out.flush();
       outthread.join();
 
       if (result != 0) {
-        // fetch the error message returned by ansible from stdout
+        // fetch the error message returned by ansible from stderr
         StringBuilder inputStringBuilder = new StringBuilder();
         BufferedReader bufferedReader = 
         		new BufferedReader(new InputStreamReader(proc.getErrorStream(), "UTF-8"));
@@ -296,11 +302,6 @@ class AnsibleRunner {
         }
         if (tempDirectory != null && !retainTempDirectory) {
           deleteTempDirectory(tempDirectory);
-        }
-
-        if (logger != null) {
-          boolean success = 0 == result;
-          logger.log(3, "[ansible-exec]: result code: " + result + ", success: " + success);
         }
     }
 

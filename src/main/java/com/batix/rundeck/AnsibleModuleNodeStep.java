@@ -27,7 +27,7 @@ public class AnsibleModuleNodeStep implements NodeStepPlugin, Describable {
     String extraArgs = (String) configuration.get("extraArgs");
     final PluginLogger logger = context.getLogger();
 
-    AnsibleRunner runner = AnsibleRunner.adHoc(module, args).limit(entry.getNodename()).extraArgs(extraArgs).setLogger(logger);
+    AnsibleRunner runner = AnsibleRunner.adHoc(module, args).limit(entry.getNodename()).extraArgs(extraArgs);
 
     if ("true".equals(System.getProperty("ansible.debug"))) {
       runner.debug();

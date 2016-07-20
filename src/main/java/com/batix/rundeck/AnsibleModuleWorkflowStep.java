@@ -26,7 +26,7 @@ public class AnsibleModuleWorkflowStep implements StepPlugin, Describable {
     String extraArgs = (String) configuration.get("extraArgs");
     final PluginLogger logger = context.getLogger();
 
-    AnsibleRunner runner = AnsibleRunner.adHoc(module, args).limit(context.getNodes()).extraArgs(extraArgs).setLogger(logger);
+    AnsibleRunner runner = AnsibleRunner.adHoc(module, args).limit(context.getNodes()).extraArgs(extraArgs);
     if ("true".equals(System.getProperty("ansible.debug"))) {
       runner.debug();
     }

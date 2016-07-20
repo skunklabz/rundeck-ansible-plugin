@@ -46,7 +46,7 @@ public class AnsiblePlaybookWorkflowStep implements StepPlugin, Describable {
     }
 
     // Configure the ansible runner
-    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(context.getNodes()).extraArgs(extraArgs).vaultPass(vaultPass).setLogger(logger);
+    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(context.getNodes()).extraArgs(extraArgs).vaultPass(vaultPass);
 
     // Set the logging level
     if (jobConfig.get("loglevel").equals("DEBUG")) {

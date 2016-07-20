@@ -47,7 +47,7 @@ public class AnsiblePlaybookNodeStep implements NodeStepPlugin, Describable {
         vaultPass = "";
     }
 
-    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(entry.getNodename()).extraArgs(extraArgs).vaultPass(vaultPass).setLogger(logger);
+    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(entry.getNodename()).extraArgs(extraArgs).vaultPass(vaultPass);
 
     if (jobConfig.get("loglevel").equals("DEBUG")) {
       runner.debug();
