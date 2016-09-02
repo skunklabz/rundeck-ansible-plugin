@@ -109,8 +109,7 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
 
           HashSet<String> tags = new HashSet<>();
           for (JsonElement ele : root.getAsJsonArray("group_names")) {
-            if (ignoreTagPrefix != null && ignoreTagPrefix.length() > 0 && ele.getAsString().startsWith(ignoreTagPrefix))
-              continue;
+            if (ignoreTagPrefix != null && ignoreTagPrefix.length() > 0 && ele.getAsString().startsWith(ignoreTagPrefix)) continue;
             tags.add(ele.getAsString());
           }
           if (envTag != null && envTag.length() > 0) {
