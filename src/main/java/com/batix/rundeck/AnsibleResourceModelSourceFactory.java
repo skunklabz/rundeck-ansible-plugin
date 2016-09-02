@@ -54,6 +54,12 @@ public class AnsibleResourceModelSourceFactory implements ResourceModelSourceFac
         "Leave blank to import all groups as tags or specify a prefix string, groups starting with this string won't be added as tags.",
         false,
         ""
+      )).property(PropertyUtil.string(
+        "envTag",
+        "Additional host tag",
+        "This tag will be added to all hosts discovered by this source",
+        false,
+        ""
       ))
       .build();
   }
