@@ -35,6 +35,8 @@ TBD
 
 ## Releases ##
 
+*This info is intended for maintainers of this project. If you just want to submit a PR, you don't need to adhere to this.*
+
 - Change version in [build.gradle line 2](build.gradle)
     - Refer to [Semantic Versioning](http://semver.org/) to determine which level to increment
 - Build a new jar with gradle (run `gradlew jar`), it will be in `build/libs`
