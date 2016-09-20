@@ -15,6 +15,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 class AnsibleRunner {
 
@@ -70,6 +72,7 @@ class AnsibleRunner {
   private boolean retainTempDirectory;
   private final List<String> limits = new ArrayList<>();
   private int result;
+  private Map<String, String> options = new HashMap<>();
 
   private Listener listener;
 
@@ -166,6 +169,14 @@ class AnsibleRunner {
     return this;
   }
 
+  /**
+   * Add options passed as Environment variables to ansible
+   */
+  public AnsibleRunner options(Map<String, String> options) {
+    this.options.putAll(options);
+    return this;
+  }
+
   public void deleteTempDirectory(Path tempDirectory) throws IOException {
       Files.walkFileTree(tempDirectory, new SimpleFileVisitor<Path>() {
         @Override
@@ -259,6 +270,12 @@ class AnsibleRunner {
     ProcessBuilder processBuilder = new ProcessBuilder()
       .command(procArgs)
       .directory(tempDirectory.toFile()); // set cwd
+    Map<String, String> processEnvironment = processBuilder.environment();
+    
+    Map<String, String> globalEnvironment = System.getenv();
+    for (String optionName : this.options.keySet()) {
+        processEnvironment.put(optionName, this.options.get(optionName));
+    }
     Process proc = null;
 
     try {

@@ -33,6 +33,7 @@ public class AnsiblePlaybookNodeStep implements NodeStepPlugin, Describable {
     String sshPass = (String) configuration.get("sshPassword");
     final PluginLogger logger = context.getLogger();
     Map<java.lang.String,java.lang.String> jobConfig = context.getDataContext().get("job");
+    Map<String,String> options = context.getDataContext().get("option");
 
     if (vaultPass != null && vaultPass.length() > 0) {
         Resource<ResourceMeta> resource  = context.getExecutionContext().getStorageTree().getResource(vaultPass);
@@ -47,7 +48,7 @@ public class AnsiblePlaybookNodeStep implements NodeStepPlugin, Describable {
         vaultPass = "";
     }
 
-    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(entry.getNodename()).extraArgs(extraArgs).vaultPass(vaultPass).sshPass(sshPass);
+    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(entry.getNodename()).extraArgs(extraArgs).vaultPass(vaultPass).sshPass(sshPass).options(options);
 
     if (jobConfig.get("loglevel").equals("DEBUG")) {
       runner.debug();
