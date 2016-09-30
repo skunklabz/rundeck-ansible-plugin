@@ -1,11 +1,10 @@
 package com.batix.rundeck;
 
-import com.batix.rundeck.ext.ArgumentTokenizer;
+import com.batix.rundeck.utils.ArgumentTokenizer;
 import com.batix.rundeck.utils.Listener;
 import com.batix.rundeck.utils.Logging;
 import com.batix.rundeck.utils.ListenerFactory;
 
-import com.dtolabs.rundeck.core.common.INodeSet;
 import java.io.*;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -15,6 +14,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Collection;
 
 class AnsibleRunner {
 
@@ -56,16 +56,30 @@ class AnsibleRunner {
   }
 
   private boolean done = false;
-  private String output;
 
   private final AnsibleCommand type;
+  
+  private String playbook;
   private String module;
   private String arg;
   private String extraArgs;
   private String vaultPass;
+
+  // ansible ssh args
+  private boolean sshUsePassword = false;
   private String sshPass;
-  private String playbook;
-  private boolean debug;
+  private String sshUser;
+  private String sshPrivateKey;
+  private Integer sshTimeout;
+
+  // ansible become args
+  protected Boolean become;
+  protected String becomeMethod;
+  protected String becomeUser;
+  protected String becomePassword;
+
+  private boolean debug = false;
+
   private Path tempDirectory;
   private boolean retainTempDirectory;
   private final List<String> limits = new ArrayList<>();
@@ -82,8 +96,8 @@ class AnsibleRunner {
     return this;
   }
 
-  public AnsibleRunner limit(INodeSet nodes) {
-    limits.addAll(nodes.getNodeNames());
+  public AnsibleRunner limit(Collection<String> hosts) {
+    limits.addAll(hosts);
     return this;
   }
 
@@ -98,13 +112,6 @@ class AnsibleRunner {
     return this;
   }
 
-  public AnsibleRunner sshPass(String pass) {
-    if (pass != null && pass.length() > 0) {
-      sshPass = pass;
-    }
-    return this;
-  }
-
   /**
    * Vault Password
    * @param pass  vault password to be used to decrypt group variables
@@ -112,6 +119,73 @@ class AnsibleRunner {
   public AnsibleRunner vaultPass(String pass) {
     if (pass != null && pass.length() > 0) {
       vaultPass = pass;
+    }
+    return this;
+  }
+
+  public AnsibleRunner sshUser(String user) {
+    if (user != null && user.length() > 0) {
+      sshUser = user;
+    }
+    return this;
+  }
+
+  public AnsibleRunner sshPass(String pass) {
+    if (pass != null && pass.length() > 0) {
+      sshPass = pass;
+    }
+    return this;
+  }
+
+  public AnsibleRunner sshPrivateKey(String key) {
+    if (key != null && key.length() > 0) {
+      sshPrivateKey = key;
+    }
+    return this;
+  }
+
+  public AnsibleRunner sshUsePassword(Boolean usePass) {
+    if (usePass != null) {
+      sshUsePassword = usePass;
+    } else {
+      sshUsePassword = false;
+    }
+    return this;
+  }
+
+  public AnsibleRunner sshTimeout(Integer timeout) {
+    if (timeout != null && timeout  > 0) {
+      sshTimeout = timeout;
+    }
+    return this;
+  }
+
+  public AnsibleRunner become(Boolean useBecome) {
+    if (useBecome != null) {
+      become = useBecome;
+    } else {
+      become = false;
+    }
+    return this;
+  }
+
+  public AnsibleRunner becomeMethod(String method) {
+    if (method != null && method.length() > 0) {
+      becomeMethod = method;
+    }
+    return this;
+  }
+
+  public AnsibleRunner becomeUser(String user) {
+    if (user != null && user.length() > 0) {
+      becomeUser = user;
+    }
+    return this;
+  }
+
+  public AnsibleRunner becomePassword(String pass) {
+    if (pass != null && pass.length() > 0) {
+      becomePassword = pass;
     }
     return this;
   }
@@ -194,6 +268,7 @@ class AnsibleRunner {
 
     File tempFile = null;
     File tempVaultFile = null;
+    File tempPrivateKeyFile = null;
 
     List<String> procArgs = new ArrayList<>();
     procArgs.add(type.command);
@@ -215,10 +290,10 @@ class AnsibleRunner {
       procArgs.add(playbook);
     }
 
-    if (limits.size() == 1) {
+    if (limits != null && limits.size() == 1) {
       procArgs.add("-l");
       procArgs.add(limits.get(0));
-    } else if (limits.size() > 1) {
+    } else if (limits != null && limits.size() > 1) {
       tempFile = File.createTempFile("ansible-runner", "targets");
       StringBuilder sb = new StringBuilder();
       for (String limit : limits) {
@@ -230,18 +305,15 @@ class AnsibleRunner {
       procArgs.add("@" + tempFile.getAbsolutePath());
     }
 
-    if (debug) {
+    if (debug == true) {
       procArgs.add("-vvvv");
     } else {
       procArgs.add("-v");
     }
 
+
     if (extraArgs != null && extraArgs.length() > 0) {
-      if (debug) {
-        System.out.println("extraArgs: " + extraArgs);
-        System.out.println("tokenized: " + tokenizeCommand(extraArgs));
-      }
-      procArgs.addAll(tokenizeCommand(extraArgs));
+      procArgs.add("--extra-vars" + "=" + extraArgs);
     }
 
     if (vaultPass != null && vaultPass.length() > 0) {
@@ -250,9 +322,44 @@ class AnsibleRunner {
       procArgs.add("--vault-password-file" + "=" + tempVaultFile.getAbsolutePath());
     }
 
+    if (sshPrivateKey != null && sshPrivateKey.length() > 0) {
+       procArgs.add("--private-key" + "=" + sshPrivateKey);
+    }
+
+    if (sshUser != null && sshUser.length() > 0) {
+       procArgs.add("--user" + "=" + sshUser);
+    }
+
+    if (sshUsePassword) {
+       procArgs.add("--ask-pass");
+    }
+
+    if (sshTimeout != null && sshTimeout  > 0) {
+      procArgs.add("--timeout" + "=" + sshTimeout);
+    }
+
+    if (become == true) {
+       procArgs.add("--become");
+       if (becomePassword != null && becomePassword.length() > 0) {
+         procArgs.add("--ask-become-pass");
+       }
+    }
+
+    if (becomeMethod != null && becomeMethod.length() > 0) {
+       procArgs.add("--become-method" + "=" + becomeMethod);
+    }
+
+    if (becomeUser != null && becomeUser.length() > 0) {
+       procArgs.add("--become-user" + "=" + becomeUser);
+    }
+
     // default the listener to stdout logger
     if (listener == null) {
         listener = ListenerFactory.getListener(System.out);
+    }
+
+    if (debug) {
+        System.out.println(" procArgs: " +  procArgs);
     }
 
     // execute the ansible process
@@ -264,38 +371,39 @@ class AnsibleRunner {
     try {
       proc = processBuilder.start();
 
-      if ( (procArgs.contains("-k") || procArgs.contains("--ask-pass")) && (sshPass != null && sshPass.length() > 0)) {
-         OutputStream stdin = proc.getOutputStream();
-         OutputStreamWriter out = new OutputStreamWriter(stdin);
-         out.write(sshPass+"\n");
-         out.close();
+      if (sshUsePassword) {
+         if (sshPass != null && sshPass.length() > 0) {
+            OutputStream stdin = proc.getOutputStream();
+            OutputStreamWriter out = new OutputStreamWriter(stdin);
+            out.write(sshPass+"\n");
+            out.close();
+         } else {
+            throw new AnsibleStepException("Missing ssh password.",AnsibleFailureReason.AnsibleNonZero);
+         }
+      }
+
+      if (become) {
+         if (becomePassword != null && becomePassword.length() > 0) {
+            OutputStream stdin = proc.getOutputStream();
+            OutputStreamWriter out = new OutputStreamWriter(stdin);
+            out.write(becomePassword+"\n");
+            out.close();
+         }
       }
 
       proc.getOutputStream().close();
+      Thread errthread = Logging.copyStreamThread(proc.getErrorStream(), listener);
       Thread outthread = Logging.copyStreamThread(proc.getInputStream(), listener);
+      errthread.start();
       outthread.start();
       result = proc.waitFor();
+      System.err.flush();
       System.out.flush();
       outthread.join();
+      errthread.join();
 
       if (result != 0) {
-        // fetch the error message returned by ansible from stderr
-        StringBuilder inputStringBuilder = new StringBuilder();
-        BufferedReader bufferedReader = 
-        		new BufferedReader(new InputStreamReader(proc.getErrorStream(), "UTF-8"));
-        String line = bufferedReader.readLine();
-        while(line != null){
-            inputStringBuilder.append(line);
-            inputStringBuilder.append('\n');
-            line = bufferedReader.readLine();
-        }
-        String msg = inputStringBuilder.toString();
-        // if stdout does noy return any message just print
-        // a generic error message.
-        if (msg.length() < 1){
-           msg = "ERROR: Ansible execution returned with non zero code.";
-        }
-        throw new AnsibleStepException(msg,AnsibleFailureReason.AnsibleNonZero);
+        throw new AnsibleStepException("ERROR: Ansible execution returned with non zero code.",AnsibleFailureReason.AnsibleNonZero);
       }
     } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

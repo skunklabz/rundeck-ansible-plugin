@@ -16,70 +16,49 @@ import com.dtolabs.rundeck.plugins.util.DescriptionBuilder;
 import org.apache.tools.ant.Project;
 
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 
 @Plugin(name = AnsibleModuleNodeStep.SERVICE_PROVIDER_NAME, service = ServiceNameConstants.WorkflowNodeStep)
-public class AnsibleModuleNodeStep implements NodeStepPlugin, Describable {
+public class AnsibleModuleNodeStep extends AbstractAnsibleStep implements NodeStepPlugin, Describable {
+
   public static final String SERVICE_PROVIDER_NAME = "com.batix.rundeck.AnsibleModuleNodeStep";
 
   @Override
   public void executeNodeStep(PluginStepContext context, Map<String, Object> configuration, INodeEntry entry) throws NodeStepException {
-    String module = (String) configuration.get("module");
-    String args = (String) configuration.get("args");
-    String extraArgs = (String) configuration.get("extraArgs");
-    String sshPass = (String) configuration.get("sshPassword");
-    final PluginLogger logger = context.getLogger();
 
-    AnsibleRunner runner = AnsibleRunner.adHoc(module, args).limit(entry.getNodename()).extraArgs(extraArgs).sshPass(sshPass);
-
-    if ("true".equals(System.getProperty("ansible.debug"))) {
-      runner.debug();
-    }
-
-    int result;
     try {
-      result = runner.run();
+      this.createRunner(context,configuration,entry);
     } catch (Exception e) {
-      throw new NodeStepException("Error running Ansible.", e, AnsibleFailureReason.AnsibleError, entry.getNodename());
+      throw new NodeStepException("Error parsing module arguments.", e, AnsibleFailureReason.ParseArgumentsError, entry.getNodename());
     }
+
+    try {
+        runner.run();
+    } catch (AnsibleStepException e) {
+        throw new NodeStepException("Error running Ansible Node Step.", e, e.getFailureReason(), entry.getNodename());
+    } catch (Exception e) {
+        throw new NodeStepException(e.getMessage(), e, AnsibleFailureReason.AnsibleError, entry.getNodename());
+    }
+
+  }
+
+  @Override
+  public AnsibleRunner getRunner() {
+      return AnsibleRunner.adHoc(module, args);
+  }
+
+  @Override
+  public AnsiblePluginType getPluginType() {
+      return AnsiblePluginType.MODULE;
   }
 
   @Override
   public Description getDescription() {
-    return DescriptionBuilder.builder()
-      .name(SERVICE_PROVIDER_NAME)
-      .title("Ansible Module")
-      .description("Runs an Ansible Module on a single node.")
-      .property(PropertyUtil.string(
-        "module",
-        "Module",
-        "Module name",
-        true,
-        null
-      ))
-      .property(PropertyUtil.string(
-        "args",
-        "Arguments",
-        "Arguments to pass to the module (-a/--args flag)",
-        false,
-        null
-      ))
-      .property(PropertyUtil.string(
-        "extraArgs",
-        "Extra Arguments",
-        "Extra Arguments for the Ansible process",
-        false,
-        null
-      ))
-      .property(PropertyUtil.string(
-        "sshPassword",
-        "SSH Password",
-        "ssh password passed to ansible job using Private data context.",
-        false,
-        "option.sshpassword",
-        null,
-        PropertyScope.Unspecified,
-        AnsibleCommon.getRenderParametersForSshPassword()
-      ))
-      .build();
+     return AnsiblePluginDescription.getAnsiblePluginPlaybookDesc(
+                    SERVICE_PROVIDER_NAME,
+                    "Ansible Module",
+                    "Runs an Ansible Module.",
+                    AnsiblePluginType.MODULE);
   }
 }

@@ -23,38 +23,12 @@ public class AnsibleResourceModelSourceFactory implements ResourceModelSourceFac
 
   @Override
   public Description getDescription() {
-    return DescriptionBuilder.builder()
-      .name(SERVICE_PROVIDER_NAME)
-      .title("Ansible Resource Model Source")
-      .description("Imports nodes from Ansible's inventory.")
-      .property(PropertyUtil.bool(
-        "gatherFacts",
-        "Gather Facts",
-        "Gather fresh facts before importing? (recommended)",
-        true,
-        "true"
-      ))
-      .property(PropertyUtil.string(
-        "limit",
-        "Limit Targets",
-        "Select only specified hosts/groups from the Ansible inventory. See http://docs.ansible.com/ansible/intro_patterns.html for syntax help.",
-        false,
-        ""
-      ))
-      .property(PropertyUtil.string(
-        "extraArgs",
-        "Extra Arguments",
-        "Extra Arguments for the Ansible process.",
-        false,
-        null
-      ))
-      .property(PropertyUtil.string(
-        "ignoreTagPrefix",
-        "Ignore tags with this prefix",
-        "Leave blank to import all groups as tags or specify a prefix string, groups starting with this string won't be added as tags.",
-        false,
-        ""
-      ))
-      .build();
+
+    return AnsiblePluginDescription.getAnsiblePluginPlaybookDesc(
+                                    SERVICE_PROVIDER_NAME,
+                                    "Ansible Resource Model Source",
+                                    "Imports nodes from Ansible's inventory.",
+                                    AnsiblePluginType.SOURCE );
   }
+
 }

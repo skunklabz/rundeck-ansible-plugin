@@ -15,42 +15,22 @@ import com.dtolabs.rundeck.plugins.util.DescriptionBuilder;
 import org.apache.tools.ant.Project;
 import org.rundeck.storage.api.Resource;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 
 @Plugin(name = AnsiblePlaybookWorkflowStep.SERVICE_PROVIDER_NAME, service = ServiceNameConstants.WorkflowStep)
-public class AnsiblePlaybookWorkflowStep implements StepPlugin, Describable {
+public class AnsiblePlaybookWorkflowStep extends AbstractAnsibleStep implements StepPlugin, Describable {
+
   public static final String SERVICE_PROVIDER_NAME = "com.batix.rundeck.AnsiblePlaybookWorkflowStep";
 
   @Override
   public void executeStep(PluginStepContext context, Map<String, Object> configuration) throws StepException {
-    String playbook = (String) configuration.get("playbook");
-    String extraArgs = (String) configuration.get("extraArgs");
-    String vaultPass = (String) configuration.get("vaultPass");
-    String sshPass = (String) configuration.get("sshPassword");
-    final PluginLogger logger = context.getLogger();
-    Map<java.lang.String,java.lang.String> jobConfig = context.getDataContext().get("job");
 
-    if (vaultPass != null && vaultPass.length() > 0) {
-        Resource<ResourceMeta> resource  = context.getExecutionContext().getStorageTree().getResource(vaultPass);
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        try {
-          resource.getContents().writeContent(byteArrayOutputStream);
-        } catch (IOException e) {
-           throw new StepException("Error reading vault password from storage Tier.", e, AnsibleFailureReason.StorageTierAccessError);
-        }
-        vaultPass = new String(byteArrayOutputStream.toByteArray());
-    } else {
-        vaultPass = "";
-    }
-
-    // Configure the ansible runner
-    AnsibleRunner runner = AnsibleRunner.playbook(playbook).limit(context.getNodes()).extraArgs(extraArgs).vaultPass(vaultPass).sshPass(sshPass);
-
-    // Set the logging level
-    if (jobConfig.get("loglevel").equals("DEBUG")) {
-      runner.debug();
+    try {
+      this.createRunner(context,configuration);
+    } catch (Exception e) {
+        throw new StepException("Error parsing module arguments.", e, AnsibleFailureReason.ParseArgumentsError);
     }
 
     // ansible runner will take care of handling exceptions, here handle only jobs specific stuff
@@ -60,50 +40,27 @@ public class AnsiblePlaybookWorkflowStep implements StepPlugin, Describable {
         throw new StepException(e.getMessage(), e, e.getFailureReason());
     } catch (Exception e) {
         throw new StepException(e.getMessage(),e,AnsibleFailureReason.AnsibleError);
+
     }
   }
 
   @Override
-  public Description getDescription() {
-    return DescriptionBuilder.builder()
-      .name(SERVICE_PROVIDER_NAME)
-      .title("Ansible Playbook")
-      .description("Runs an Ansible Playbook on selected nodes.")
-      .property(PropertyUtil.string(
-        "playbook",
-        "Playbook",
-        "Path to a playbook",
-        true,
-        null,
-        new AnsiblePlaybookPropertyValidator()
-      ))
-      .property(PropertyUtil.string(
-        "extraArgs",
-        "Extra Arguments",
-        "Extra Arguments for the Ansible process",
-        false,
-        null
-      ))
-      .property(PropertyUtil.string(
-        "vaultPass",
-        "Vault Password",
-        "Vault Password used to decrypt group variables",
-        false,
-        null,
-        null,
-        PropertyScope.Unspecified,
-        AnsibleCommon.getRenderParametersForStoragePath()
-      ))
-      .property(PropertyUtil.string(
-        "sshPassword",
-        "SSH Password",
-        "ssh password passed to ansible job using Private data context.",
-        false,
-        "option.sshpassword",
-        null,
-        PropertyScope.Unspecified,
-        AnsibleCommon.getRenderParametersForSshPassword()
-      ))
-      .build();
+  public AnsiblePluginType getPluginType() {
+      return AnsiblePluginType.PLAYBOOK;
   }
+
+  @Override
+  public AnsibleRunner getRunner() {
+      return AnsibleRunner.playbook(playbook);
+  }
+
+  @Override
+  public Description getDescription() {
+     return AnsiblePluginDescription.getAnsiblePluginPlaybookDesc( 
+                    SERVICE_PROVIDER_NAME, 
+                    "Ansible Playbook", 
+                    "Runs an Ansible Playbook.",
+                    AnsiblePluginType.PLAYBOOK);
+  }
+
 }

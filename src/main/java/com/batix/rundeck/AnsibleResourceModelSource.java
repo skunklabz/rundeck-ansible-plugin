@@ -5,10 +5,13 @@ import com.dtolabs.rundeck.core.common.NodeEntryImpl;
 import com.dtolabs.rundeck.core.common.NodeSetImpl;
 import com.dtolabs.rundeck.core.resources.ResourceModelSource;
 import com.dtolabs.rundeck.core.resources.ResourceModelSourceException;
+import com.dtolabs.rundeck.core.storage.ResourceMeta;
+import org.rundeck.storage.api.Resource;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import java.io.ByteArrayOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -18,16 +21,47 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 
 public class AnsibleResourceModelSource implements ResourceModelSource {
+
   final boolean gatherFacts;
+  final boolean ignoreErrors;
   final String limit;
-  final String extraArgs;
+  final String extraArgs = "";
   final String ignoreTagPrefix;
 
+  protected String vaultPass;
+  protected Boolean debug = false;
+
+  // ansible ssh args
+  protected String sshUser;
+  protected Boolean sshUsePassword;
+  protected String sshPassword;
+  protected String sshPrivateKey;
+  protected String sshPass;
+  protected Integer sshTimeout;
+
+  // ansible become args
+  protected Boolean become;
+  protected String becomeMethod;
+  protected String becomeUser;
+  protected String becomePassword;
+
   public AnsibleResourceModelSource(Properties configuration) {
+
     gatherFacts = "true".equals(configuration.get("gatherFacts"));
+    ignoreErrors = "true".equals(configuration.get("ignoreErrors"));
     limit = (String) configuration.get("limit");
-    extraArgs = (String) configuration.get("extraArgs");
     ignoreTagPrefix = (String) configuration.get("ignoreTagPrefix");
+
+    sshUsePassword = "true".equals( configuration.get("askpass") );
+    sshUser = (String) configuration.get("sshUser");
+    sshPrivateKey = (String) configuration.get("sshPrivateKey");
+    sshPassword = (String) configuration.get("sshPassword");
+    sshTimeout =  (Integer)  configuration.get("sshTimeout");
+    become = "true".equals( configuration.get("become") );
+    becomeMethod = (String) configuration.get("becomeMethod");
+    becomeUser = (String) configuration.get("becomeUser");
+    becomePassword = (String)  configuration.get("becomePassword");
+
   }
 
   @Override
@@ -38,33 +72,45 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
     try {
       tempDirectory = Files.createTempDirectory("ansible-hosts");
     } catch (IOException e) {
-      throw new ResourceModelSourceException("Error creating temporary directory.", e);
+        throw new ResourceModelSourceException("Error creating temporary directory.", e);
     }
 
     try {
       Files.copy(this.getClass().getClassLoader().getResourceAsStream("host-tpl.j2"), tempDirectory.resolve("host-tpl.j2"));
       Files.copy(this.getClass().getClassLoader().getResourceAsStream("gather-hosts.yml"), tempDirectory.resolve("gather-hosts.yml"));
     } catch (IOException e) {
-      throw new ResourceModelSourceException("Error copying files.");
+        throw new ResourceModelSourceException("Error copying files.");
     }
 
     AnsibleRunner runner = AnsibleRunner.playbook("gather-hosts.yml");
+
     if ("true".equals(System.getProperty("ansible.debug"))) {
       runner.debug();
     }
     runner.tempDirectory(tempDirectory).retainTempDirectory();
 
     if (limit != null && limit.length() > 0) {
-      runner.limit(limit);
+      List<String> limitList = new ArrayList<>();
+      limitList.add(limit);
+      runner.limit(limitList);
     }
 
     StringBuilder args = new StringBuilder();
-    args.append("-e facts=").append(gatherFacts ? "True" : "False");
-    args.append(" ").append("-e tmpdir='").append(tempDirectory.toFile().getAbsolutePath()).append("'");
-    if (extraArgs != null && extraArgs.length() > 0) {
-      args.append(" ").append(extraArgs);
-    }
+    args.append("facts=").append(gatherFacts ? "True" : "False");
+    args.append(" ").append("tmpdir='").append(tempDirectory.toFile().getAbsolutePath()).append("'");
     runner.extraArgs(args.toString());
+
+    System.out.println(sshPassword);
+
+    runner.sshUser(sshUser)
+          .sshUsePassword(sshUsePassword)
+          .sshPass(sshPassword)
+          .sshPrivateKey(sshPrivateKey)
+          .sshTimeout(sshTimeout)
+          .become(become)
+          .becomeMethod(becomeMethod)
+          .becomeUser(becomeUser)
+          .becomePassword(becomePassword);
 
     try {
       int status = runner.run();
