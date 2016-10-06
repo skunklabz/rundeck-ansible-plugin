@@ -1,26 +1,50 @@
-package com.batix.rundeck;
+package com.batix.rundeck.plugins;
 
+import com.batix.rundeck.core.AnsibleDescribable;
+import com.batix.rundeck.core.AnsibleException.AnsibleFailureReason;
+import com.batix.rundeck.core.AnsibleRunner;
+import com.batix.rundeck.core.AnsibleRunnerBuilder;
 import com.dtolabs.rundeck.core.common.INodeEntry;
 import com.dtolabs.rundeck.core.common.IRundeckProject;
-import com.dtolabs.rundeck.core.common.ProjectManager;
 import com.dtolabs.rundeck.core.execution.ExecutionContext;
 import com.dtolabs.rundeck.core.execution.impl.jsch.JschScpFileCopier;
 import com.dtolabs.rundeck.core.execution.service.DestinationFileCopier;
 import com.dtolabs.rundeck.core.execution.service.FileCopierException;
 import com.dtolabs.rundeck.core.plugins.Plugin;
-import com.dtolabs.rundeck.core.plugins.configuration.Describable;
 import com.dtolabs.rundeck.core.plugins.configuration.Description;
-import com.dtolabs.rundeck.core.plugins.configuration.PropertyUtil;
+import com.dtolabs.rundeck.core.plugins.configuration.ConfigurationException;
 import com.dtolabs.rundeck.plugins.ServiceNameConstants;
 import com.dtolabs.rundeck.plugins.util.DescriptionBuilder;
-import com.dtolabs.rundeck.plugins.PluginLogger;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.io.File;
 import java.io.InputStream;
 
 @Plugin(name = AnsibleFileCopier.SERVICE_PROVIDER_NAME, service = ServiceNameConstants.FileCopier)
-public class AnsibleFileCopier implements DestinationFileCopier, Describable {
-  public static final String SERVICE_PROVIDER_NAME = "com.batix.rundeck.AnsibleFileCopier";
+public class AnsibleFileCopier implements DestinationFileCopier, AnsibleDescribable {
+
+  public static final String SERVICE_PROVIDER_NAME = "com.batix.rundeck.plugins.AnsibleFileCopier";
+
+  public static Description DESC = null;
+
+  static {
+        DescriptionBuilder builder = DescriptionBuilder.builder();
+        builder.name(SERVICE_PROVIDER_NAME);
+        builder.title("Ansible File Copier");
+        builder.description("Sends a file to a node via the copy module.");
+        builder.property(SSH_AUTH_TYPE_PROP);
+        builder.property(SSH_USER_PROP);
+        builder.property(SSH_PASSWORD_STORAGE_PROP);
+        builder.property(SSH_KEY_FILE_PROP); 
+        builder.property(SSH_KEY_STORAGE_PROP); 
+        builder.property(SSH_TIMEOUT_PROP);
+        builder.property(BECOME_PROP);
+        builder.property(BECOME_AUTH_TYPE_PROP);
+        builder.property(BECOME_USER_PROP);
+        builder.property(BECOME_PASSWORD_STORAGE_PROP);
+        DESC=builder.build();
+  }
 
   @Override
   public String copyFileStream(ExecutionContext context, InputStream input, INodeEntry node, String destination) throws FileCopierException {
@@ -61,11 +85,14 @@ public class AnsibleFileCopier implements DestinationFileCopier, Describable {
     String destinationPath
   ) throws FileCopierException {
 
+    AnsibleRunner runner = null;
+
     IRundeckProject project = context.getFramework().getFrameworkProjectMgr().getFrameworkProject(context.getFrameworkProject());
 
     if (destinationPath == null) {
       String identity = (context.getDataContext() != null && context.getDataContext().get("job") != null) ?
-        context.getDataContext().get("job").get("execid") : null;
+                        context.getDataContext().get("job").get("execid") : null;
+
       destinationPath = JschScpFileCopier.generateRemoteFilepathForNode(
         node,
         project,
@@ -76,24 +103,35 @@ public class AnsibleFileCopier implements DestinationFileCopier, Describable {
       );
     }
 
-    ProjectManager projectManager = context.getFramework().getProjectManager();
-    IRundeckProject frameworkProject = projectManager.getFrameworkProject(context.getFrameworkProject());
-    String extraArgs = frameworkProject.hasProperty("extraArgs") ? frameworkProject.getProperty("extraArgs") : null;
-
     File localTempFile = scriptFile != null ?
       scriptFile : JschScpFileCopier.writeTempFile(context, null, input, script);
 
     String cmdArgs = "src='" + localTempFile.getAbsolutePath() + "' dest='" + destinationPath + "'";
 
-    AnsibleRunner runner = AnsibleRunner.adHoc("copy", cmdArgs).limit(node.getNodename()).extraArgs(extraArgs);
+    Map<String, Object> jobConf = new HashMap<String, Object>();
+    jobConf.put(AnsibleDescribable.ANSIBLE_MODULE,"copy");
+    jobConf.put(AnsibleDescribable.ANSIBLE_MODULE_ARGS,cmdArgs.toString());
+    jobConf.put(AnsibleDescribable.ANSIBLE_LIMIT,node.getNodename());
+
     if ("true".equals(System.getProperty("ansible.debug"))) {
-      runner.debug();
+      jobConf.put(AnsibleDescribable.ANSIBLE_DEBUG,"True");
+    } else {
+      jobConf.put(AnsibleDescribable.ANSIBLE_DEBUG,"False");
     }
-    int result;
+
+    AnsibleRunnerBuilder builder = new AnsibleRunnerBuilder(node, context, context.getFramework(), jobConf);
+
+
     try {
-      result = runner.run();
+        runner = builder.buildAnsibleRunner();  
+    } catch (ConfigurationException e) {
+          throw new FileCopierException("Error configuring Ansible.",AnsibleFailureReason.ParseArgumentsError, e);
+    }
+
+    try {
+          runner.run();
     } catch (Exception e) {
-      throw new FileCopierException("Error running Ansible.", AnsibleFailureReason.AnsibleError, e);
+          throw new FileCopierException("Error running Ansible.", AnsibleFailureReason.AnsibleError, e);
     }
 
     return destinationPath;
@@ -101,17 +139,7 @@ public class AnsibleFileCopier implements DestinationFileCopier, Describable {
 
   @Override
   public Description getDescription() {
-    return DescriptionBuilder.builder()
-      .name(SERVICE_PROVIDER_NAME)
-      .title("Ansible File Copier")
-      .description("Sends a file to a node via the copy module.")
-      .property(PropertyUtil.string(
-        "extraArgs",
-        "Extra Arguments",
-        "Extra Arguments for the Ansible process",
-        false,
-        null
-      ))
-      .build();
+    return DESC;
   }
 }
+

@@ -1,22 +1,24 @@
-package com.batix.rundeck;
+package com.batix.rundeck.core;
 
-import com.batix.rundeck.utils.ArgumentTokenizer;
-import com.batix.rundeck.utils.Listener;
 import com.batix.rundeck.utils.Logging;
 import com.batix.rundeck.utils.ListenerFactory;
+import com.batix.rundeck.utils.Listener;
+import com.batix.rundeck.utils.ArgumentTokenizer;
 
 import java.io.*;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Collection;
 
-class AnsibleRunner {
+public class AnsibleRunner {
 
   enum AnsibleCommand {
     AdHoc("ansible"),
@@ -58,8 +60,9 @@ class AnsibleRunner {
   private boolean done = false;
 
   private final AnsibleCommand type;
-  
+
   private String playbook;
+  private String inventory;
   private String module;
   private String arg;
   private String extraArgs;
@@ -89,6 +92,13 @@ class AnsibleRunner {
 
   private AnsibleRunner(AnsibleCommand type) {
     this.type = type;
+  }
+
+  public AnsibleRunner setInventory(String inv) {
+    if (inv != null && inv.length() > 0) {
+      inventory = inv;
+    }
+    return this;
   }
 
   public AnsibleRunner limit(String host) {
@@ -268,7 +278,6 @@ class AnsibleRunner {
 
     File tempFile = null;
     File tempVaultFile = null;
-    File tempPrivateKeyFile = null;
 
     List<String> procArgs = new ArrayList<>();
     procArgs.add(type.command);
@@ -288,6 +297,10 @@ class AnsibleRunner {
       procArgs.add(tempDirectory.toFile().getAbsolutePath());
     } else if (type == AnsibleCommand.Playbook) {
       procArgs.add(playbook);
+    }
+
+    if (inventory != null && inventory.length() > 0) {
+      procArgs.add("--inventory-file" + "=" + inventory);
     }
 
     if (limits != null && limits.size() == 1) {
@@ -323,6 +336,14 @@ class AnsibleRunner {
     }
 
     if (sshPrivateKey != null && sshPrivateKey.length() > 0) {
+       File tempPkFile = File.createTempFile("ansible-runner", "id_rsa");
+       // Only the owner can read and write
+       Set<PosixFilePermission> perms = new HashSet<PosixFilePermission>();
+       perms.add(PosixFilePermission.OWNER_READ);
+       perms.add(PosixFilePermission.OWNER_WRITE);
+       Files.setPosixFilePermissions(tempPkFile.toPath(), perms);
+
+       Files.write(tempPkFile.toPath(), sshPrivateKey.getBytes());
        procArgs.add("--private-key" + "=" + sshPrivateKey);
     }
 
@@ -378,7 +399,7 @@ class AnsibleRunner {
             out.write(sshPass+"\n");
             out.close();
          } else {
-            throw new AnsibleStepException("Missing ssh password.",AnsibleFailureReason.AnsibleNonZero);
+            throw new AnsibleException("Missing ssh password.",AnsibleException.AnsibleFailureReason.AnsibleNonZero);
          }
       }
 
@@ -403,17 +424,17 @@ class AnsibleRunner {
       errthread.join();
 
       if (result != 0) {
-        throw new AnsibleStepException("ERROR: Ansible execution returned with non zero code.",AnsibleFailureReason.AnsibleNonZero);
+        throw new AnsibleException("ERROR: Ansible execution returned with non zero code.",AnsibleException.AnsibleFailureReason.AnsibleNonZero);
       }
     } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new AnsibleStepException("ERROR: Ansible Execution Interrupted.", e, AnsibleFailureReason.Interrupted);
+            throw new AnsibleException("ERROR: Ansible Execution Interrupted.", e, AnsibleException.AnsibleFailureReason.Interrupted);
     } catch (IOException e) {
-            throw new AnsibleStepException("ERROR: Ansible IO failure.", e, AnsibleFailureReason.IOFailure);
-    } catch (AnsibleStepException e) {
+            throw new AnsibleException("ERROR: Ansible IO failure.", e, AnsibleException.AnsibleFailureReason.IOFailure);
+    } catch (AnsibleException e) {
             throw e;
     } catch (Exception e) {
-            throw new AnsibleStepException("ERROR: Ansible execution returned with non zero code.", e, AnsibleFailureReason.Unknown);
+            throw new AnsibleException("ERROR: Ansible execution returned with non zero code.", e, AnsibleException.AnsibleFailureReason.Unknown);
     } finally {
         // Make sure to always cleanup on failure and success
         proc.getErrorStream().close();
@@ -437,3 +458,4 @@ class AnsibleRunner {
   }
 
 }
+
