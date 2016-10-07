@@ -76,7 +76,7 @@ public class AnsibleRunner {
   private Integer sshTimeout;
 
   // ansible become args
-  protected Boolean become;
+  protected Boolean become = Boolean.FALSE;
   protected String becomeMethod;
   protected String becomeUser;
   protected String becomePassword;

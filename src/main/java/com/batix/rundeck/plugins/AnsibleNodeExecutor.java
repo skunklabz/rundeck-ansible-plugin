@@ -1,5 +1,6 @@
 package com.batix.rundeck.plugins;
 
+import com.dtolabs.rundeck.core.Constants;
 import com.dtolabs.rundeck.core.plugins.configuration.ConfigurationException;
 import com.batix.rundeck.core.AnsibleDescribable;
 import com.batix.rundeck.core.AnsibleException;
@@ -78,7 +79,16 @@ public class AnsibleNodeExecutor implements NodeExecutor, AnsibleDescribable {
     ProjectManager projectManager = context.getFramework().getProjectManager();
     IRundeckProject project = projectManager.getFrameworkProject(context.getFrameworkProject());
 
-    cmdArgs.append("executable=").append(project.getProperty("executable"));
+    String executable = AnsibleRunnerBuilder.resolveProperty(
+                          AnsibleDescribable.ANSIBLE_EXECUTABLE,
+                          AnsibleDescribable.DEFAULT_ANSIBLE_EXECUTABLE,
+                          context.getFrameworkProject(),
+                          context.getFramework(),
+                          node,
+                          null
+                        );
+
+    cmdArgs.append("executable=").append(executable);
     for (String cmd : command) {
       cmdArgs.append(" '").append(cmd).append("'");
     }
@@ -101,7 +111,7 @@ public class AnsibleNodeExecutor implements NodeExecutor, AnsibleDescribable {
     } catch (ConfigurationException e) {
           return NodeExecutorResultImpl.createFailure(AnsibleException.AnsibleFailureReason.ParseArgumentsError, e.getMessage(), node);
     }
-
+ 
     try {
         runner.run();
     } catch (Exception e) {

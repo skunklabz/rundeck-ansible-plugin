@@ -109,7 +109,7 @@ public class AnsibleRunnerBuilder {
         return null;
     }
 
-    private static String resolveProperty(
+    public static String resolveProperty(
             final String attribute,
             final String defaultValue,
             final String frameworkProject,
@@ -417,7 +417,7 @@ public class AnsibleRunnerBuilder {
         if (null != becomeMethod) {
              return BecomeMethodType.valueOf(becomeMethod);
         }
-        return BecomeMethodType.sudo;
+        return null;
     }
 
 

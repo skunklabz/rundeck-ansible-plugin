@@ -18,6 +18,7 @@ public interface AnsibleDescribable extends Describable {
     public static final String ANSIBLE_MODULE_ARGS = "ansible-module-args";
     public static final String ANSIBLE_DEBUG = "ansible-debug";
     public static final String ANSIBLE_EXECUTABLE = "ansible-executable";
+    public static final String DEFAULT_ANSIBLE_EXECUTABLE = "/bin/sh";
     public static final String ANSIBLE_GATHER_FACTS = "ansible-gather-facts";
     public static final String ANSIBLE_IGNORE_ERRORS = "ansible-ignore-errors";
     public static final String ANSIBLE_LIMIT = "ansible-limit";
