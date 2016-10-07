@@ -213,7 +213,7 @@ public class AnsibleRunnerBuilder {
     public String getSshPrivateKey()  throws ConfigurationException{
         //look for storage option
         String storagePath = resolveProperty(
-        		AnsibleDescribable.ANSIBLE_SSH_KEYPATH_STORAGE_PATH,
+        	AnsibleDescribable.ANSIBLE_SSH_KEYPATH_STORAGE_PATH,
                 null,
                 getFrameworkProject(),
                 getFramework(),
@@ -247,22 +247,39 @@ public class AnsibleRunnerBuilder {
             //else look up option value
             final String path = getPrivateKeyfilePath();
             if (path != null) {
-              try {
-				return new String(Files.readAllBytes(Paths.get(path)));
-			} catch (IOException e) {
-                throw new ConfigurationException("Failed to read the ssh private key from path " +
-                		path + ": " + e.getMessage());
-			}
+                try {
+                    return new String(Files.readAllBytes(Paths.get(path)));
+                } catch (IOException e) {
+                    throw new ConfigurationException("Failed to read the ssh private key from path " +
+                                                  path + ": " + e.getMessage());
+                }
             } else {
-              return null;
+                return null;
             }
         }
     }
 
     public String getSshPassword()  throws ConfigurationException{
-        //look for storage option
-        String storagePath = resolveProperty(
-        		AnsibleDescribable.ANSIBLE_SSH_PASSWORD_STORAGE_PATH,
+        
+        //look for option values first
+        //typically jobs use secure options to dynamically setup the ssh password
+        final String passwordOption = resolveProperty(
+                    AnsibleDescribable.ANSIBLE_SSH_PASSWORD_OPTION,
+                    AnsibleDescribable.DEFAULT_ANSIBLE_SSH_PASSWORD_OPTION,
+                    getFrameworkProject(),
+                    getFramework(),
+                    getNode(),
+                    getjobConf()
+                    );
+        String sshPassword = evaluateSecureOption(passwordOption, getContext());
+        
+        if(null!=sshPassword){
+            // is true if there is an ssh option defined in the private data context
+            return sshPassword;
+        } else {
+            //look for storage option
+            String storagePath = resolveProperty(
+                AnsibleDescribable.ANSIBLE_SSH_PASSWORD_STORAGE_PATH,
                 null,
                 getFrameworkProject(),
                 getFramework(),
@@ -270,39 +287,32 @@ public class AnsibleRunnerBuilder {
                 getjobConf()
                 );
 
-        if(null!=storagePath){
-            //look up storage value
-            if (storagePath.contains("${")) {
-                storagePath = DataContextUtils.replaceDataReferences(
-                        storagePath,
-                        context.getDataContext()
-                );
-            }
-            Path path = PathUtil.asPath(storagePath);
-            try {
-                ResourceMeta contents = context.getStorageTree().getResource(path)
-                        .getContents();
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                contents.writeContent(byteArrayOutputStream);
-                return new String(byteArrayOutputStream.toByteArray());
-            } catch (StorageException e) {
-                throw new ConfigurationException("Failed to read the shh password for " +
-                        "storage path: " + storagePath + ": " + e.getMessage());
-            } catch (IOException e) {
-                throw new ConfigurationException("Failed to read the ssh password for " +
-                        "storage path: " + storagePath + ": " + e.getMessage());
-            }
-        } else {
-            //else look up option value
-            final String passwordOption = resolveProperty(
-            		AnsibleDescribable.ANSIBLE_SSH_PASSWORD_OPTION,
-            		AnsibleDescribable.DEFAULT_ANSIBLE_SSH_PASSWORD_OPTION,
-                    getFrameworkProject(), 
-                    getFramework(),
-                    getNode(),
-                    getjobConf()
+            if(null!=storagePath){
+                //look up storage value
+                if (storagePath.contains("${")) {
+                    storagePath = DataContextUtils.replaceDataReferences(
+                            storagePath,
+                            context.getDataContext()
                     );
-            return evaluateSecureOption(passwordOption, getContext());
+                }
+                Path path = PathUtil.asPath(storagePath);
+                try {
+                    ResourceMeta contents = context.getStorageTree().getResource(path)
+                            .getContents();
+                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                    contents.writeContent(byteArrayOutputStream);
+                    return new String(byteArrayOutputStream.toByteArray());
+                } catch (StorageException e) {
+                    throw new ConfigurationException("Failed to read the shh password for " +
+                            "storage path: " + storagePath + ": " + e.getMessage());
+                } catch (IOException e) {
+                    throw new ConfigurationException("Failed to read the ssh password for " +
+                            "storage path: " + storagePath + ": " + e.getMessage());
+                }
+
+            } else {
+                return null;
+            }
         }
     }
 
@@ -439,8 +449,8 @@ public class AnsibleRunnerBuilder {
 
     public String getBecomePassword(String prefix) {
         final String passwordOption = resolveProperty(
-        		    AnsibleDescribable.ANSIBLE_BECOME_PASSWORD_OPTION,
-        		    AnsibleDescribable.DEFAULT_ANSIBLE_BECOME_PASSWORD_OPTION,
+                    AnsibleDescribable.ANSIBLE_BECOME_PASSWORD_OPTION,
+                    AnsibleDescribable.DEFAULT_ANSIBLE_BECOME_PASSWORD_OPTION,
                     getFrameworkProject(), 
                     getFramework(),
                     getNode(),
@@ -451,9 +461,26 @@ public class AnsibleRunnerBuilder {
     }
 
     public String getBecomePassword()  throws ConfigurationException{
-        //look for storage option
-        String storagePath = resolveProperty(
-        		AnsibleDescribable.ANSIBLE_BECOME_PASSWORD_STORAGE_PATH,
+        
+        //look for option values first
+        //typically jobs use secure options to dynamically setup the become password
+        String passwordOption = resolveProperty(
+                    AnsibleDescribable.ANSIBLE_BECOME_PASSWORD_OPTION,
+                    AnsibleDescribable.DEFAULT_ANSIBLE_BECOME_PASSWORD_OPTION,
+                    getFrameworkProject(),
+                    getFramework(),
+                    getNode(),
+                    getjobConf()
+                    );
+        String becomePassword = evaluateSecureOption(passwordOption, getContext());
+        
+        if(null!=becomePassword){
+            // is true if there is a become option defined in the private data context
+            return becomePassword;
+        } else {
+            //look for storage option
+            String storagePath = resolveProperty(
+                AnsibleDescribable.ANSIBLE_BECOME_PASSWORD_STORAGE_PATH,
                 null,
                 getFrameworkProject(),
                 getFramework(),
@@ -461,39 +488,32 @@ public class AnsibleRunnerBuilder {
                 getjobConf()
                 );
 
-        if(null!=storagePath){
-            //look up storage value
-            if (storagePath.contains("${")) {
-                storagePath = DataContextUtils.replaceDataReferences(
-                        storagePath,
-                        context.getDataContext()
-                );
-            }
-            Path path = PathUtil.asPath(storagePath);
-            try {
-                ResourceMeta contents = context.getStorageTree().getResource(path)
-                        .getContents();
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                contents.writeContent(byteArrayOutputStream);
-                return new String(byteArrayOutputStream.toByteArray());
-            } catch (StorageException e) {
-                throw new ConfigurationException("Failed to read the winrm password for " +
-                        "storage path: " + storagePath + ": " + e.getMessage());
-            } catch (IOException e) {
-                throw new ConfigurationException("Failed to read the winrm password for " +
-                        "storage path: " + storagePath + ": " + e.getMessage());
-            }
-        } else {
-            //else look up option value
-            final String passwordOption = resolveProperty(
-            		AnsibleDescribable.ANSIBLE_SSH_KEYPATH_STORAGE_PATH,
-            		AnsibleDescribable.DEFAULT_ANSIBLE_BECOME_PASSWORD_OPTION,
-                    getFrameworkProject(), 
-                    getFramework(),
-                    getNode(),
-                    getjobConf()
+            if(null!=storagePath){
+                //look up storage value
+                if (storagePath.contains("${")) {
+                    storagePath = DataContextUtils.replaceDataReferences(
+                            storagePath,
+                            context.getDataContext()
                     );
-            return evaluateSecureOption(passwordOption, getContext());
+                }
+                Path path = PathUtil.asPath(storagePath);
+                try {
+                    ResourceMeta contents = context.getStorageTree().getResource(path)
+                            .getContents();
+                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                    contents.writeContent(byteArrayOutputStream);
+                    return new String(byteArrayOutputStream.toByteArray());
+                } catch (StorageException e) {
+                    throw new ConfigurationException("Failed to read the become password for " +
+                            "storage path: " + storagePath + ": " + e.getMessage());
+                } catch (IOException e) {
+                    throw new ConfigurationException("Failed to read the become password for " +
+                            "storage path: " + storagePath + ": " + e.getMessage());
+                }
+
+            } else {
+                return null;
+            }
         }
     }
 
