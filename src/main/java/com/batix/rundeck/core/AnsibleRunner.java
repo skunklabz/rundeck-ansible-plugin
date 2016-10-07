@@ -67,7 +67,8 @@ public class AnsibleRunner {
   private String arg;
   private String extraArgs;
   private String vaultPass;
-
+  private boolean ignoreErrors = false;
+  
   // ansible ssh args
   private boolean sshUsePassword = false;
   private String sshPass;
@@ -133,6 +134,11 @@ public class AnsibleRunner {
     return this;
   }
 
+  public AnsibleRunner ignoreErrors(boolean ignoreErrors) {
+	  this.ignoreErrors = ignoreErrors;
+	  return this;
+  }
+  
   public AnsibleRunner sshUser(String user) {
     if (user != null && user.length() > 0) {
       sshUser = user;
@@ -419,13 +425,16 @@ public class AnsibleRunner {
       errthread.start();
       outthread.start();
       result = proc.waitFor();
-      System.err.flush();
-      System.out.flush();
       outthread.join();
       errthread.join();
-
+      System.err.flush();
+      System.out.flush();
+      
       if (result != 0) {
-        throw new AnsibleException("ERROR: Ansible execution returned with non zero code.",AnsibleException.AnsibleFailureReason.AnsibleNonZero);
+    	  if (ignoreErrors == false) {
+              throw new AnsibleException("ERROR: Ansible execution returned with non zero code.",
+        		                      AnsibleException.AnsibleFailureReason.AnsibleNonZero);
+    	  }
       }
     } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

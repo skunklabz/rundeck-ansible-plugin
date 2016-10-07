@@ -38,6 +38,7 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
 
   private String inventory;
   private boolean gatherFacts;
+  private boolean ignoreErrors = false;
   private String limit;
   private String ignoreTagPrefix;
 
@@ -87,6 +88,8 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
 
     inventory = resolveProperty(AnsibleDescribable.ANSIBLE_INVENTORY,configuration,executionDataContext);
     gatherFacts = "true".equals(resolveProperty(AnsibleDescribable.ANSIBLE_GATHER_FACTS,configuration,executionDataContext));
+    ignoreErrors = "true".equals(resolveProperty(AnsibleDescribable.ANSIBLE_IGNORE_ERRORS,configuration,executionDataContext));
+    
     limit = (String) resolveProperty(AnsibleDescribable.ANSIBLE_LIMIT,configuration,executionDataContext);
     ignoreTagPrefix = (String) resolveProperty(AnsibleDescribable.ANSIBLE_IGNORE_TAGS,configuration,executionDataContext);
 
@@ -145,6 +148,10 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
 
         if (inventory != null) {
             runner = runner.setInventory(inventory);
+        }
+        
+        if (ignoreErrors == true) {
+        	runner = runner.ignoreErrors(ignoreErrors);
         }
         
         if (sshUser != null) {
