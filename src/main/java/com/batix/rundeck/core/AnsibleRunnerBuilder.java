@@ -657,6 +657,23 @@ public class AnsibleRunnerBuilder {
         return inventory;
     }
 
+    public String getLimit() {
+        final String limit;
+        limit = PropertyResolver.resolveProperty(
+                     AnsibleDescribable.ANSIBLE_LIMIT,
+                     null,
+                     getFrameworkProject(),
+                     getFramework(),
+                     getNode(),
+                     getjobConf()
+                     );
+
+        if (null != limit && limit.contains("${")) {
+            return DataContextUtils.replaceDataReferences(limit, getContext().getDataContext());
+        }
+        return limit;
+    }
+    
     public AnsibleRunner buildAnsibleRunner() throws ConfigurationException{
 
         AnsibleRunner runner = null;
@@ -689,6 +706,11 @@ public class AnsibleRunnerBuilder {
             runner = runner.setInventory(inventory);
         }
 
+        String limit = getLimit();
+        if (limit != null) {
+            runner = runner.limit(limit);
+        }
+        
         Boolean debug = getDebug();
         if (debug != null) {
             if (debug == Boolean.TRUE) {
