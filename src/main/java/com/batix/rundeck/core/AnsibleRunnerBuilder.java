@@ -633,7 +633,7 @@ public class AnsibleRunnerBuilder {
     }
 
     public Boolean getDebug() {
-        Boolean debug = null;
+        Boolean debug = Boolean.FALSE;
         String sdebug = resolveProperty(
                   AnsibleDescribable.ANSIBLE_DEBUG,
                   null,
@@ -768,7 +768,11 @@ public class AnsibleRunnerBuilder {
 
         Boolean debug = getDebug();
         if (debug != null) {
-            runner = runner.debug(Boolean.TRUE);
+            if (debug == Boolean.TRUE) {
+               runner = runner.debug(Boolean.TRUE);
+            } else {
+               runner = runner.debug(Boolean.FALSE);
+            }
         }
 
         String extraVars = getExtraVars();

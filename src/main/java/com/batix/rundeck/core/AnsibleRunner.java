@@ -319,7 +319,7 @@ public class AnsibleRunner {
       procArgs.add("@" + tempFile.getAbsolutePath());
     }
 
-    if (debug == true) {
+    if (debug == Boolean.TRUE) {
       procArgs.add("-vvvv");
     } else {
       procArgs.add("-v");
