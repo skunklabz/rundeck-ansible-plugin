@@ -278,6 +278,7 @@ public class AnsibleRunner {
 
     File tempFile = null;
     File tempVaultFile = null;
+    File tempPkFile = null;
 
     List<String> procArgs = new ArrayList<>();
     procArgs.add(type.command);
@@ -336,7 +337,7 @@ public class AnsibleRunner {
     }
 
     if (sshPrivateKey != null && sshPrivateKey.length() > 0) {
-       File tempPkFile = File.createTempFile("ansible-runner", "id_rsa");
+       tempPkFile = File.createTempFile("ansible-runner", "id_rsa");
        // Only the owner can read and write
        Set<PosixFilePermission> perms = new HashSet<PosixFilePermission>();
        perms.add(PosixFilePermission.OWNER_READ);
@@ -344,7 +345,7 @@ public class AnsibleRunner {
        Files.setPosixFilePermissions(tempPkFile.toPath(), perms);
 
        Files.write(tempPkFile.toPath(), sshPrivateKey.getBytes());
-       procArgs.add("--private-key" + "=" + sshPrivateKey);
+       procArgs.add("--private-key" + "=" + tempPkFile.toPath());
     }
 
     if (sshUser != null && sshUser.length() > 0) {
@@ -441,6 +442,9 @@ public class AnsibleRunner {
         proc.getInputStream().close();
         if (tempFile != null && !tempFile.delete()) {
           tempFile.deleteOnExit();
+        }
+        if (tempPkFile != null && !tempPkFile.delete()) {
+          tempPkFile.deleteOnExit();
         }
         if (tempVaultFile != null && !tempVaultFile.delete()) {
           tempVaultFile.deleteOnExit();
