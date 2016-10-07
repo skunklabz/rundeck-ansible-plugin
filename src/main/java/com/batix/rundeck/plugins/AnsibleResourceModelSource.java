@@ -65,6 +65,7 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
 
   private static String resolveProperty(
             final String attribute,
+            final String defaultValue,
             final Properties configuration,
             final Map<String, Map<String, String>> dataContext
   )
@@ -72,7 +73,7 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
         if ( configuration.containsKey(attribute) ) {
             return DataContextUtils.replaceDataReferences( (String)configuration.get(attribute),dataContext);
         } else {
-          return null;
+          return defaultValue;
         }
   }
 
@@ -86,22 +87,23 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
     executionDataContext = ScriptDataContextUtil.createScriptDataContextForProject(framework, project);
     executionDataContext.putAll(configDataContext);
 
-    inventory = resolveProperty(AnsibleDescribable.ANSIBLE_INVENTORY,configuration,executionDataContext);
-    gatherFacts = "true".equals(resolveProperty(AnsibleDescribable.ANSIBLE_GATHER_FACTS,configuration,executionDataContext));
-    ignoreErrors = "true".equals(resolveProperty(AnsibleDescribable.ANSIBLE_IGNORE_ERRORS,configuration,executionDataContext));
+    inventory = resolveProperty(AnsibleDescribable.ANSIBLE_INVENTORY,null,configuration,executionDataContext);
+    gatherFacts = "true".equals(resolveProperty(AnsibleDescribable.ANSIBLE_GATHER_FACTS,null,configuration,executionDataContext));
+    ignoreErrors = "true".equals(resolveProperty(AnsibleDescribable.ANSIBLE_IGNORE_ERRORS,null,configuration,executionDataContext));
     
-    limit = (String) resolveProperty(AnsibleDescribable.ANSIBLE_LIMIT,configuration,executionDataContext);
-    ignoreTagPrefix = (String) resolveProperty(AnsibleDescribable.ANSIBLE_IGNORE_TAGS,configuration,executionDataContext);
+    limit = (String) resolveProperty(AnsibleDescribable.ANSIBLE_LIMIT,null,configuration,executionDataContext);
+    ignoreTagPrefix = (String) resolveProperty(AnsibleDescribable.ANSIBLE_IGNORE_TAGS,null,configuration,executionDataContext);
 
-    sshAuthType = resolveProperty(AnsibleDescribable.ANSIBLE_SSH_AUTH_TYPE,configuration,executionDataContext);
-    sshUser = (String) resolveProperty(AnsibleDescribable.ANSIBLE_SSH_USER,configuration,executionDataContext);
+    sshAuthType = resolveProperty(AnsibleDescribable.ANSIBLE_SSH_AUTH_TYPE,AuthenticationType.privateKey.name(),configuration,executionDataContext);
+    
+    sshUser = (String) resolveProperty(AnsibleDescribable.ANSIBLE_SSH_USER,null,configuration,executionDataContext);
 
-    sshPrivateKeyFile = (String) resolveProperty(AnsibleDescribable.ANSIBLE_SSH_KEYPATH,configuration,executionDataContext);
+    sshPrivateKeyFile = (String) resolveProperty(AnsibleDescribable.ANSIBLE_SSH_KEYPATH,null,configuration,executionDataContext);
 
-    sshPassword = (String) resolveProperty(AnsibleDescribable.ANSIBLE_SSH_PASSWORD,configuration,executionDataContext);
+    sshPassword = (String) resolveProperty(AnsibleDescribable.ANSIBLE_SSH_PASSWORD,null,configuration,executionDataContext);
     
     sshTimeout = null;
-    String str_sshTimeout = resolveProperty(AnsibleDescribable.ANSIBLE_SSH_TIMEOUT,configuration,executionDataContext);
+    String str_sshTimeout = resolveProperty(AnsibleDescribable.ANSIBLE_SSH_TIMEOUT,null,configuration,executionDataContext);
     if ( str_sshTimeout != null ) {
        try {
           sshTimeout =  Integer.parseInt(str_sshTimeout);
@@ -110,74 +112,75 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
        }
     }
     
-    become = "true".equals( resolveProperty(AnsibleDescribable.ANSIBLE_BECOME,configuration,executionDataContext) );
-    becomeMethod = (String) resolveProperty(AnsibleDescribable.ANSIBLE_BECOME_METHOD,configuration,executionDataContext);
-    becomeUser = (String) resolveProperty(AnsibleDescribable.ANSIBLE_BECOME_USER,configuration,executionDataContext);
-    becomePassword = (String)  resolveProperty(AnsibleDescribable.ANSIBLE_BECOME_PASSWORD,configuration,executionDataContext);
+    become = "true".equals( resolveProperty(AnsibleDescribable.ANSIBLE_BECOME,null,configuration,executionDataContext) );
+    becomeMethod = (String) resolveProperty(AnsibleDescribable.ANSIBLE_BECOME_METHOD,null,configuration,executionDataContext);
+    becomeUser = (String) resolveProperty(AnsibleDescribable.ANSIBLE_BECOME_USER,null,configuration,executionDataContext);
+    becomePassword = (String)  resolveProperty(AnsibleDescribable.ANSIBLE_BECOME_PASSWORD,null,configuration,executionDataContext);
   }
 
   public AnsibleRunner buildAnsibleRunner() throws ResourceModelSourceException{
 
-	AnsibleRunner runner = AnsibleRunner.playbook("gather-hosts.yml");
+	  AnsibleRunner runner = AnsibleRunner.playbook("gather-hosts.yml");
 
-	if ("true".equals(System.getProperty("ansible.debug"))) {
-	    runner.debug();
-	}
+	  if ("true".equals(System.getProperty("ansible.debug"))) {
+		  runner.debug();
+	  }
 
-	if (limit != null && limit.length() > 0) {
-	    List<String> limitList = new ArrayList<>();
-	    limitList.add(limit);
-	    runner.limit(limitList);
-	}
-	      
-        if ( sshAuthType.equalsIgnoreCase(AuthenticationType.privateKey.name()) ) {
-             if (sshPrivateKeyFile != null) {
-            	String sshPrivateKey;
-		try {
-		       sshPrivateKey = new String(Files.readAllBytes(Paths.get(sshPrivateKeyFile)));
-		} catch (IOException e) {
-		       throw new ResourceModelSourceException("Could not read privatekey file " + sshPrivateKeyFile,e);
-		}
-                runner = runner.sshPrivateKey(sshPrivateKey);
-             }
-        } else if ( sshAuthType.equalsIgnoreCase(AuthenticationType.password.name()) ) {
-            if (sshPassword != null) {
-                runner = runner.sshUsePassword(Boolean.TRUE).sshPass(sshPassword);
-            }
-        }
+	  if (limit != null && limit.length() > 0) {
+		  List<String> limitList = new ArrayList<>();
+		  limitList.add(limit);
+		  runner.limit(limitList);
+	  }
+	  
+		  if ( sshAuthType.equalsIgnoreCase(AuthenticationType.privateKey.name()) ) {
+			  if (sshPrivateKeyFile != null) {
+				  String sshPrivateKey;
+				  try {
+					  sshPrivateKey = new String(Files.readAllBytes(Paths.get(sshPrivateKeyFile)));
+				  } catch (IOException e) {
+					  throw new ResourceModelSourceException("Could not read privatekey file " + sshPrivateKeyFile,e);
+				  }
+				  runner = runner.sshPrivateKey(sshPrivateKey);
+			  }
+		  } else if ( sshAuthType.equalsIgnoreCase(AuthenticationType.password.name()) ) {
+			  if (sshPassword != null) {
+				  runner = runner.sshUsePassword(Boolean.TRUE).sshPass(sshPassword);
+			  }
+		  }
+	  
 
-        if (inventory != null) {
-            runner = runner.setInventory(inventory);
-        }
-        
-        if (ignoreErrors == true) {
-        	runner = runner.ignoreErrors(ignoreErrors);
-        }
-        
-        if (sshUser != null) {
-            runner = runner.sshUser(sshUser);
-        }
-        if (sshTimeout != null) {
-            runner = runner.sshTimeout(sshTimeout);
-        }
+	  if (inventory != null) {
+		  runner = runner.setInventory(inventory);
+	  }
 
-        if (become != null) {
-            runner = runner.become(become);
-        }
+	  if (ignoreErrors == true) {
+		  runner = runner.ignoreErrors(ignoreErrors);
+	  }
 
-        if (becomeUser != null) {
-            runner = runner.becomeUser(becomeUser);
-        }
+	  if (sshUser != null) {
+		  runner = runner.sshUser(sshUser);
+	  }
+	  if (sshTimeout != null) {
+		  runner = runner.sshTimeout(sshTimeout);
+	  }
 
-        if (becomeMethod != null) {
-            runner = runner.becomeMethod(becomeMethod);
-        }
+	  if (become != null) {
+		  runner = runner.become(become);
+	  }
 
-        if (becomePassword != null) {
-            runner = runner.becomePassword(becomePassword);
-        }
+	  if (becomeUser != null) {
+		  runner = runner.becomeUser(becomeUser);
+	  }
 
-        return runner;
+	  if (becomeMethod != null) {
+		  runner = runner.becomeMethod(becomeMethod);
+	  }
+
+	  if (becomePassword != null) {
+		  runner = runner.becomePassword(becomePassword);
+	  }
+
+	  return runner;
   }
 
 
