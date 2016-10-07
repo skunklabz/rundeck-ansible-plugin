@@ -1,9 +1,9 @@
 package com.batix.rundeck.plugins;
 
 import com.batix.rundeck.core.AnsibleDescribable;
+import com.batix.rundeck.core.AnsibleDescribable.AuthenticationType;
 import com.batix.rundeck.core.AnsibleException;
 import com.batix.rundeck.core.AnsibleRunner;
-import com.batix.rundeck.core.AnsibleRunnerBuilder;
 import com.dtolabs.rundeck.core.common.Framework;
 import com.dtolabs.rundeck.core.common.INodeSet;
 import com.dtolabs.rundeck.core.common.NodeEntryImpl;
@@ -127,7 +127,7 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
 	    runner.limit(limitList);
 	}
 	      
-        if ( sshAuthType.equalsIgnoreCase(AnsibleRunnerBuilder.AuthenticationType.privateKey.name()) ) {
+        if ( sshAuthType.equalsIgnoreCase(AuthenticationType.privateKey.name()) ) {
              if (sshPrivateKeyFile != null) {
             	String sshPrivateKey;
 		try {
@@ -137,7 +137,7 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
 		}
                 runner = runner.sshPrivateKey(sshPrivateKey);
              }
-        } else if ( sshAuthType.equalsIgnoreCase(AnsibleRunnerBuilder.AuthenticationType.password.name()) ) {
+        } else if ( sshAuthType.equalsIgnoreCase(AuthenticationType.password.name()) ) {
             if (sshPassword != null) {
                 runner = runner.sshUsePassword(Boolean.TRUE).sshPass(sshPassword);
             }

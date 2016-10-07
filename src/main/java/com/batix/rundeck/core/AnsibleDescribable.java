@@ -7,9 +7,59 @@ import com.dtolabs.rundeck.core.plugins.configuration.StringRenderingConstants;
 import com.dtolabs.rundeck.plugins.util.PropertyBuilder;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 
 public interface AnsibleDescribable extends Describable {
-	
+
+    public static enum Executable {
+        bash("/bin/bash"),
+        sh("/bin/sh");
+    	
+    	private final String executable;
+    	
+    	Executable(String executable) {
+    		this.executable = executable;
+    	}
+    	
+    	public String getValue() {
+			return executable;
+		}
+
+		public static String[] getValues() {
+    	    java.util.LinkedList<String> list = new LinkedList<String>();
+    	    for (Executable s : Executable.values()) {
+    	        list.add(s.executable);
+    	    }
+    	    return list.toArray(new String[list.size()]);
+    	}
+    }
+
+    public static enum AuthenticationType {
+        privateKey,
+        password;
+    	
+    	public static String[] getValues() {
+    	    java.util.LinkedList<String> list = new LinkedList<String>();
+    	    for (AuthenticationType s : AuthenticationType.values()) {
+    	        list.add(s.name());
+    	    }
+    	    return list.toArray(new String[list.size()]);
+    	}
+    }
+
+    public static enum BecomeMethodType {
+        sudo,
+        su;
+    	
+    	public static String[] getValues() {
+    	    java.util.LinkedList<String> list = new LinkedList<String>();
+    	    for (BecomeMethodType s : BecomeMethodType.values()) {
+    	        list.add(s.name());
+    	    }
+    	    return list.toArray(new String[list.size()]);
+    	}
+    }
+    
     public static final String SERVICE_PROVIDER_TYPE = "ansible-service";
 
     public static final String ANSIBLE_PLAYBOOK = "ansible-playbook";
@@ -85,8 +135,8 @@ public interface AnsibleDescribable extends Describable {
               "Executable",
               "Change the remote shell used to execute the command. Should be an absolute path to the executable.",
               true,
-              "/bin/bash",
-              Arrays.asList("/bin/sh", "/bin/bash")
+              null,
+              Arrays.asList(Executable.getValues())
     );
 
     public static Property GATHER_FACTS_PROP = PropertyUtil.bool(
@@ -197,7 +247,7 @@ public interface AnsibleDescribable extends Describable {
             .required(false)
             .title("SSH Authentication")
             .description("Type of SSH Authentication to use.")
-            .values(Arrays.asList(AnsibleRunnerBuilder.AuthenticationType.getValues()))
+            .values(Arrays.asList(AuthenticationType.getValues()))
             .renderingOption(StringRenderingConstants.GROUPING,"SECONDARY")
             .renderingOption(StringRenderingConstants.GROUP_NAME,"SSH Connection")
             .build();
@@ -269,7 +319,7 @@ public interface AnsibleDescribable extends Describable {
             .required(false)
             .title("Privilege escalation method.")
             .description("Privilege escalation method to use (default=sudo).")
-            .values(Arrays.asList(AnsibleRunnerBuilder.BecomeMethodType.getValues()))
+            .values(Arrays.asList(BecomeMethodType.getValues()))
             .renderingOption(StringRenderingConstants.GROUPING,"SECONDARY")
             .renderingOption(StringRenderingConstants.GROUP_NAME,"Privilege Escalation")
             .build();

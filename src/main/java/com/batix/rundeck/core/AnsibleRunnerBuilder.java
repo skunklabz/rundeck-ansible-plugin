@@ -6,6 +6,8 @@
 package com.batix.rundeck.core;
 
 import com.dtolabs.rundeck.core.common.INodeEntry;
+import com.batix.rundeck.core.AnsibleDescribable.AuthenticationType;
+import com.batix.rundeck.core.AnsibleDescribable.BecomeMethodType;
 import com.dtolabs.rundeck.core.common.Framework;
 import com.dtolabs.rundeck.core.dispatcher.DataContextUtils;
 import com.dtolabs.rundeck.core.execution.ExecutionContext;
@@ -20,40 +22,12 @@ import java.nio.file.Paths;
 
 import org.rundeck.storage.api.Path;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 
 import org.rundeck.storage.api.PathUtil;
 import org.rundeck.storage.api.StorageException;
 
 public class AnsibleRunnerBuilder {
-
-
-    public static enum AuthenticationType {
-        privateKey,
-        password;
-    	
-    	public static String[] getValues() {
-    	    java.util.LinkedList<String> list = new LinkedList<String>();
-    	    for (AuthenticationType s : AuthenticationType.values()) {
-    	        list.add(s.name());
-    	    }
-    	    return list.toArray(new String[list.size()]);
-    	}
-    }
-
-    public static enum BecomeMethodType {
-        sudo,
-        su;
-    	
-    	public static String[] getValues() {
-    	    java.util.LinkedList<String> list = new LinkedList<String>();
-    	    for (BecomeMethodType s : BecomeMethodType.values()) {
-    	        list.add(s.name());
-    	    }
-    	    return list.toArray(new String[list.size()]);
-    	}
-    }
 
     private ExecutionContext context;
     private Framework framework;
@@ -85,57 +59,6 @@ public class AnsibleRunnerBuilder {
         this.node = node;
     }
 
-    private String evaluateSecureOption(final String optionName, final ExecutionContext context ) {
-        if (null == optionName) {
-            return null;
-        }
-        if (null == context.getPrivateDataContext()) {
-            return null;
-        }
-        final String[] opts = optionName.split("\\.", 2);
-        String dataset = null;
-        String optname = null;
-        if (null != opts && 2 == opts.length) {
-            dataset = opts[0];
-            optname = opts[1];
-        } else if (null != opts && 1 == opts.length) {
-            dataset = "option";
-            optname = opts[0];
-        }
-        final Map<String, String> option = context.getPrivateDataContext().get(dataset);
-        if (null != option) {
-            return option.get(optname);
-        }
-        return null;
-    }
-
-    public static String resolveProperty(
-            final String attribute,
-            final String defaultValue,
-            final String frameworkProject,
-            final Framework framework,
-            final INodeEntry node,
-            final Map<String, Object> jobConf
-    )
-    {
-        // First check if the job Configuration contains the attribute
-        // Then check if the project has that attribute
-        // Finally check the framework
-        if ( jobConf != null && jobConf.containsKey(attribute) ) {
-               return (String) jobConf.get(attribute);
-        } else if ( node != null && null != node.getAttributes().get(attribute)) {
-            return node.getAttributes().get(attribute);
-        } else if ( framework.hasProjectProperty(AnsibleDescribable.PROJ_PROP_PREFIX + attribute, frameworkProject)
-             && !"".equals(framework.getProjectProperty(frameworkProject, AnsibleDescribable.PROJ_PROP_PREFIX + attribute))
-           ) {
-               return framework.getProjectProperty(frameworkProject, AnsibleDescribable.PROJ_PROP_PREFIX + attribute);
-        } else if (framework.hasProperty(AnsibleDescribable.FWK_PROP_PREFIX + attribute)) {
-            return framework.getProperty(AnsibleDescribable.FWK_PROP_PREFIX + attribute);
-        } else {
-            return defaultValue;
-        }
-    }
-
     private byte[] loadStoragePathData(final String passwordStoragePath) throws IOException {
         if (null == passwordStoragePath) {
             return null;
@@ -147,7 +70,7 @@ public class AnsibleRunnerBuilder {
     }
 
     public String getPrivateKeyfilePath() {
-        String path = resolveProperty(
+        String path = PropertyResolver.resolveProperty(
                 AnsibleDescribable.ANSIBLE_SSH_KEYPATH,
                 null,
                 getFrameworkProject(),
@@ -164,7 +87,7 @@ public class AnsibleRunnerBuilder {
     }
 
     public String getPrivateKeyStoragePath() {
-        String path = resolveProperty(
+        String path = PropertyResolver.resolveProperty(
         		AnsibleDescribable.ANSIBLE_SSH_KEYPATH_STORAGE_PATH,
                 null,
                 getFrameworkProject(),
@@ -194,7 +117,7 @@ public class AnsibleRunnerBuilder {
 
     public String getPasswordStoragePath() {
 
-        String path = resolveProperty(
+        String path = PropertyResolver.resolveProperty(
         		AnsibleDescribable.ANSIBLE_SSH_PASSWORD_STORAGE_PATH,
                 null,
                 getFrameworkProject(),
@@ -212,7 +135,7 @@ public class AnsibleRunnerBuilder {
 
     public String getSshPrivateKey()  throws ConfigurationException{
         //look for storage option
-        String storagePath = resolveProperty(
+        String storagePath = PropertyResolver.resolveProperty(
         	AnsibleDescribable.ANSIBLE_SSH_KEYPATH_STORAGE_PATH,
                 null,
                 getFrameworkProject(),
@@ -263,7 +186,7 @@ public class AnsibleRunnerBuilder {
         
         //look for option values first
         //typically jobs use secure options to dynamically setup the ssh password
-        final String passwordOption = resolveProperty(
+        final String passwordOption = PropertyResolver.resolveProperty(
                     AnsibleDescribable.ANSIBLE_SSH_PASSWORD_OPTION,
                     AnsibleDescribable.DEFAULT_ANSIBLE_SSH_PASSWORD_OPTION,
                     getFrameworkProject(),
@@ -271,14 +194,14 @@ public class AnsibleRunnerBuilder {
                     getNode(),
                     getjobConf()
                     );
-        String sshPassword = evaluateSecureOption(passwordOption, getContext());
+        String sshPassword = PropertyResolver.evaluateSecureOption(passwordOption, getContext());
         
         if(null!=sshPassword){
             // is true if there is an ssh option defined in the private data context
             return sshPassword;
         } else {
             //look for storage option
-            String storagePath = resolveProperty(
+            String storagePath = PropertyResolver.resolveProperty(
                 AnsibleDescribable.ANSIBLE_SSH_PASSWORD_STORAGE_PATH,
                 null,
                 getFrameworkProject(),
@@ -318,7 +241,7 @@ public class AnsibleRunnerBuilder {
 
     public Integer getSSHTimeout() throws ConfigurationException {
     	Integer timeout = null;
-        final String stimeout = resolveProperty(
+        final String stimeout = PropertyResolver.resolveProperty(
         		    AnsibleDescribable.ANSIBLE_SSH_TIMEOUT,
                     null,
                     getFrameworkProject(), 
@@ -339,7 +262,7 @@ public class AnsibleRunnerBuilder {
 
     public String getSshUser() {
         final String user;
-        user = resolveProperty(
+        user = PropertyResolver.resolveProperty(
                   AnsibleDescribable.ANSIBLE_SSH_USER,
                   null,
                   getFrameworkProject(),
@@ -356,7 +279,7 @@ public class AnsibleRunnerBuilder {
 
 
     public AuthenticationType getSshAuthenticationType() {
-        String authType = resolveProperty(
+        String authType = PropertyResolver.resolveProperty(
                   AnsibleDescribable.ANSIBLE_SSH_AUTH_TYPE,
                   null,
                   getFrameworkProject(),
@@ -373,7 +296,7 @@ public class AnsibleRunnerBuilder {
 
     public String getBecomeUser() {
         final String user;
-        user = resolveProperty(
+        user = PropertyResolver.resolveProperty(
                    AnsibleDescribable.ANSIBLE_BECOME_USER,
                    null,
                    getFrameworkProject(),
@@ -389,7 +312,7 @@ public class AnsibleRunnerBuilder {
 
     public Boolean getBecome() {
         Boolean become = null;
-        String sbecome = resolveProperty(
+        String sbecome = PropertyResolver.resolveProperty(
                    AnsibleDescribable.ANSIBLE_BECOME,
                    null,
                    getFrameworkProject(),
@@ -405,7 +328,7 @@ public class AnsibleRunnerBuilder {
     }
 
     public BecomeMethodType getBecomeMethod() {
-        String becomeMethod = resolveProperty(
+        String becomeMethod = PropertyResolver.resolveProperty(
                    AnsibleDescribable.ANSIBLE_BECOME_METHOD,
                    null,
                    getFrameworkProject(),
@@ -427,7 +350,7 @@ public class AnsibleRunnerBuilder {
 
 
     public String getBecomePasswordStoragePath() { 
-        String path = resolveProperty(
+        String path = PropertyResolver.resolveProperty(
         		AnsibleDescribable.ANSIBLE_BECOME_PASSWORD_STORAGE_PATH,
                 null,
                 getFrameworkProject(),
@@ -448,7 +371,7 @@ public class AnsibleRunnerBuilder {
 
 
     public String getBecomePassword(String prefix) {
-        final String passwordOption = resolveProperty(
+        final String passwordOption = PropertyResolver.resolveProperty(
                     AnsibleDescribable.ANSIBLE_BECOME_PASSWORD_OPTION,
                     AnsibleDescribable.DEFAULT_ANSIBLE_BECOME_PASSWORD_OPTION,
                     getFrameworkProject(), 
@@ -457,14 +380,14 @@ public class AnsibleRunnerBuilder {
                     getjobConf()
                     );
 
-        return evaluateSecureOption(passwordOption, getContext());
+        return PropertyResolver.evaluateSecureOption(passwordOption, getContext());
     }
 
     public String getBecomePassword()  throws ConfigurationException{
         
         //look for option values first
         //typically jobs use secure options to dynamically setup the become password
-        String passwordOption = resolveProperty(
+        String passwordOption = PropertyResolver.resolveProperty(
                     AnsibleDescribable.ANSIBLE_BECOME_PASSWORD_OPTION,
                     AnsibleDescribable.DEFAULT_ANSIBLE_BECOME_PASSWORD_OPTION,
                     getFrameworkProject(),
@@ -472,14 +395,14 @@ public class AnsibleRunnerBuilder {
                     getNode(),
                     getjobConf()
                     );
-        String becomePassword = evaluateSecureOption(passwordOption, getContext());
+        String becomePassword = PropertyResolver.evaluateSecureOption(passwordOption, getContext());
         
         if(null!=becomePassword){
             // is true if there is a become option defined in the private data context
             return becomePassword;
         } else {
             //look for storage option
-            String storagePath = resolveProperty(
+            String storagePath = PropertyResolver.resolveProperty(
                 AnsibleDescribable.ANSIBLE_BECOME_PASSWORD_STORAGE_PATH,
                 null,
                 getFrameworkProject(),
@@ -519,7 +442,7 @@ public class AnsibleRunnerBuilder {
 
     public String getVaultKey()  throws ConfigurationException{
         //look for storage option
-        String storagePath = resolveProperty(
+        String storagePath = PropertyResolver.resolveProperty(
         		AnsibleDescribable.ANSIBLE_VAULTSTORE_PATH,
                 null,
                 getFrameworkProject(),
@@ -552,7 +475,7 @@ public class AnsibleRunnerBuilder {
             }
         } else {
 
-            String path = resolveProperty(
+            String path = PropertyResolver.resolveProperty(
             	AnsibleDescribable.ANSIBLE_VAULT_PATH,
                 null,
                 getFrameworkProject(),
@@ -617,7 +540,7 @@ public class AnsibleRunnerBuilder {
 
     public String getExecutable() {
         final String executable;
-        executable = resolveProperty(
+        executable = PropertyResolver.resolveProperty(
                   AnsibleDescribable.ANSIBLE_EXECUTABLE,
                   null,
                   getFrameworkProject(),
@@ -634,7 +557,7 @@ public class AnsibleRunnerBuilder {
 
     public Boolean getDebug() {
         Boolean debug = Boolean.FALSE;
-        String sdebug = resolveProperty(
+        String sdebug = PropertyResolver.resolveProperty(
                   AnsibleDescribable.ANSIBLE_DEBUG,
                   null,
                   getFrameworkProject(),
@@ -651,7 +574,7 @@ public class AnsibleRunnerBuilder {
 
     public Boolean gatherFacts() {
         Boolean gatherFacts = null;
-        String sgatherFacts = resolveProperty(
+        String sgatherFacts = PropertyResolver.resolveProperty(
                   AnsibleDescribable.ANSIBLE_GATHER_FACTS,
                   null,
                   getFrameworkProject(),
@@ -668,7 +591,7 @@ public class AnsibleRunnerBuilder {
 
     public Boolean ignoreErrors() {
         Boolean ignoreErrors = null;
-        String signoreErrors = resolveProperty(
+        String signoreErrors = PropertyResolver.resolveProperty(
                    AnsibleDescribable.ANSIBLE_IGNORE_ERRORS,
                    null,
                    getFrameworkProject(),
@@ -685,7 +608,7 @@ public class AnsibleRunnerBuilder {
 
     public String getIgnoreTagsPrefix() {
         final String ignoreTagsPrefix;
-        ignoreTagsPrefix = resolveProperty(
+        ignoreTagsPrefix = PropertyResolver.resolveProperty(
                    AnsibleDescribable.ANSIBLE_IGNORE_TAGS,
                    null,
                    getFrameworkProject(),
@@ -702,7 +625,7 @@ public class AnsibleRunnerBuilder {
 
     public String getExtraVars() {
         final String extraVars;
-        extraVars = resolveProperty(
+        extraVars = PropertyResolver.resolveProperty(
                     AnsibleDescribable.ANSIBLE_EXTRA_VARS,
                     null,
                     getFrameworkProject(),
@@ -719,7 +642,7 @@ public class AnsibleRunnerBuilder {
 
     public String getInventory() {
         final String inventory;
-        inventory = resolveProperty(
+        inventory = PropertyResolver.resolveProperty(
                      AnsibleDescribable.ANSIBLE_INVENTORY,
                      null,
                      getFrameworkProject(),
