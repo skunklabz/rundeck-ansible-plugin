@@ -173,8 +173,8 @@ public interface AnsibleDescribable extends Describable {
 
     public static Property EXTRA_VARS_PROP = PropertyUtil.string(
           ANSIBLE_EXTRA_VARS,
-          "Extra Arguments",
-          "Extra Arguments for the Ansible process",
+          "Extra Variables",
+          "Set additional variables as key=value or YAML/JSON",
           false,
           null
     );
