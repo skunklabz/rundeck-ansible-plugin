@@ -179,15 +179,15 @@ public interface AnsibleDescribable extends Describable {
           null
     );
 
-    static final Property VAULT_KEY_FILE_PROP = PropertyUtil.string(ANSIBLE_VAULT_PATH, "VAULT Key File path",
+    static final Property VAULT_KEY_FILE_PROP = PropertyUtil.string(ANSIBLE_VAULT_PATH, "Vault Key File path",
             "File Path to the ansible vault Key to use",
             false, null);
 
     static final Property VAULT_KEY_STORAGE_PROP = PropertyBuilder.builder()
             .string(ANSIBLE_VAULTSTORE_PATH)
             .required(false)
-            .title("vaultPass")
-            .description("Vault Password used to decrypt group variables")
+            .title("Vault Pass Storage Path")
+            .description("Path to the Vault Key to use within Rundeck Storage. E.g. \"keys/path/ansible.vault\"")
             .renderingOption(StringRenderingConstants.SELECTION_ACCESSOR_KEY,
                     StringRenderingConstants.SelectionAccessor.STORAGE_PATH)
             .renderingOption(StringRenderingConstants.STORAGE_PATH_ROOT_KEY, "keys")
