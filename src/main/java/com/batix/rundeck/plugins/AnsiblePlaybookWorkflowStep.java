@@ -52,7 +52,15 @@ public class AnsiblePlaybookWorkflowStep implements StepPlugin, AnsibleDescribab
     AnsibleRunner runner = null;
 
     // set targets
-    configuration.put(AnsibleDescribable.ANSIBLE_LIMIT,context.getNodes().getNodeNames());
+    StringBuilder nodes = new StringBuilder();
+    for(String node : context.getNodes().getNodeNames()) {
+    	nodes.append(node);
+    	nodes.append(",");
+    }
+    String limit = nodes.length() > 0 ? nodes.substring(0, nodes.length() - 1): "";
+    if (limit != "") {
+        configuration.put(AnsibleDescribable.ANSIBLE_LIMIT,limit);
+    }
     // set log level
     if (context.getDataContext().get("job").get("loglevel").equals("DEBUG")) {
         configuration.put(AnsibleDescribable.ANSIBLE_DEBUG,"True");
