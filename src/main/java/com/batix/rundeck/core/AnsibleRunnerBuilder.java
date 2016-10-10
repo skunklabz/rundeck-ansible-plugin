@@ -700,6 +700,12 @@ public class AnsibleRunnerBuilder {
                 runner = runner.sshUsePassword(Boolean.TRUE).sshPass(password);
             }
         }
+        
+        // set rundeck options as environment variables
+        Map<String,String> options = context.getDataContext().get("option");
+        if (options != null) {
+            runner = runner.options(options);
+        }
 
         String inventory = getInventory();
         if (inventory != null) {
