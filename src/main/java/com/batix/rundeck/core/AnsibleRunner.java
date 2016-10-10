@@ -17,6 +17,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Collection;
+import java.util.Map;
+import java.util.HashMap;
 
 public class AnsibleRunner {
 
@@ -88,6 +90,7 @@ public class AnsibleRunner {
   private boolean retainTempDirectory;
   private final List<String> limits = new ArrayList<>();
   private int result;
+  private Map<String, String> options = new HashMap<>();
 
   private Listener listener;
 
@@ -120,6 +123,14 @@ public class AnsibleRunner {
     if (args != null && args.length() > 0) {
       extraArgs = args;
     }
+    return this;
+  }
+
+  /**
+   * Add options passed as Environment variables to ansible
+   */
+  public AnsibleRunner options(Map<String, String> options) {
+    this.options.putAll(options);
     return this;
   }
 
@@ -395,6 +406,12 @@ public class AnsibleRunner {
       .command(procArgs)
       .directory(tempDirectory.toFile()); // set cwd
     Process proc = null;
+
+    Map<String, String> processEnvironment = processBuilder.environment();
+    
+    for (String optionName : this.options.keySet()) {
+        processEnvironment.put(optionName, this.options.get(optionName));
+    }
 
     try {
       proc = processBuilder.start();
