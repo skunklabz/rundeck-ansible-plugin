@@ -34,7 +34,7 @@
  *
  * END_COPYRIGHT_BLOCK*/
 
-package com.batix.rundeck.ext;
+package com.batix.rundeck.utils;
 
 import java.util.List;
 import java.util.LinkedList;
