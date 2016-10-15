@@ -28,7 +28,6 @@ configurations {
 
 dependencies {
   pluginLibs 'com.google.code.gson:gson:2.5'
-
   compile 'org.rundeck:rundeck-core:2.6.3'
 }
 

@@ -65,7 +65,8 @@ public class AnsibleRunner {
   private String inventory;
   private String module;
   private String arg;
-  private String extraArgs;
+  private String extraVars;
+  private String extraParams;
   private String vaultPass;
   private boolean ignoreErrors = false;
   
@@ -116,9 +117,16 @@ public class AnsibleRunner {
    * Additional arguments to pass to the process
    * @param args  extra commandline which gets appended to the base command and arguments
    */
-  public AnsibleRunner extraArgs(String args) {
+  public AnsibleRunner extraParams(String params) {
+	    if (params != null && params.length() > 0) {
+	    	extraParams = params;
+	    }
+	    return this;
+	  }
+  
+  public AnsibleRunner extraVars(String args) {
     if (args != null && args.length() > 0) {
-      extraArgs = args;
+    	extraVars = args;
     }
     return this;
   }
@@ -285,7 +293,8 @@ public class AnsibleRunner {
     File tempFile = null;
     File tempVaultFile = null;
     File tempPkFile = null;
-
+    File tempVarsFile = null;
+    
     List<String> procArgs = new ArrayList<>();
     procArgs.add(type.command);
 
@@ -332,8 +341,10 @@ public class AnsibleRunner {
     }
 
 
-    if (extraArgs != null && extraArgs.length() > 0) {
-      procArgs.add("--extra-vars" + "=" + extraArgs);
+    if (extraVars != null && extraVars.length() > 0) {
+    	tempVarsFile = File.createTempFile("ansible-runner", "extra-vars");
+    	Files.write(tempVarsFile.toPath(), extraVars.getBytes());
+        procArgs.add("--extra-vars" + "=" + "@" + tempVarsFile.getAbsolutePath());
     }
 
     if (vaultPass != null && vaultPass.length() > 0) {
@@ -390,6 +401,10 @@ public class AnsibleRunner {
         System.out.println(" procArgs: " +  procArgs);
     }
 
+    if (extraParams != null && extraParams.length() > 0) {
+        procArgs.addAll(tokenizeCommand(extraParams));
+    }
+    
     // execute the ansible process
     ProcessBuilder processBuilder = new ProcessBuilder()
       .command(procArgs)
@@ -437,6 +452,7 @@ public class AnsibleRunner {
     	  }
       }
     } catch (InterruptedException e) {
+    	    proc.destroy();
             Thread.currentThread().interrupt();
             throw new AnsibleException("ERROR: Ansible Execution Interrupted.", e, AnsibleException.AnsibleFailureReason.Interrupted);
     } catch (IOException e) {
@@ -444,11 +460,15 @@ public class AnsibleRunner {
     } catch (AnsibleException e) {
             throw e;
     } catch (Exception e) {
+    	    proc.destroy();
             throw new AnsibleException("ERROR: Ansible execution returned with non zero code.", e, AnsibleException.AnsibleFailureReason.Unknown);
     } finally {
         // Make sure to always cleanup on failure and success
         proc.getErrorStream().close();
         proc.getInputStream().close();
+        if (proc.isAlive()) {
+        	proc.destroy();
+        }
         if (tempFile != null && !tempFile.delete()) {
           tempFile.deleteOnExit();
         }

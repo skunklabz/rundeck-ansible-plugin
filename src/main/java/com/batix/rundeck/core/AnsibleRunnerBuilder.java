@@ -722,7 +722,7 @@ public class AnsibleRunnerBuilder {
 
         String extraVars = getExtraVars();
         if (extraVars != null) {
-            runner = runner.extraArgs(extraVars);
+            runner = runner.extraVars(extraVars);
         }
         
         String user = getSshUser();

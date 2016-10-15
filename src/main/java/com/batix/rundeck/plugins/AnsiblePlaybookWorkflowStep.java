@@ -30,6 +30,7 @@ public class AnsiblePlaybookWorkflowStep implements StepPlugin, AnsibleDescribab
 
         builder.property(PLAYBOOK_PROP);
         builder.property(EXTRA_VARS_PROP);
+        builder.property(EXTRA_ATTRS_PROP);
         builder.property(VAULT_KEY_FILE_PROP);
         builder.property(VAULT_KEY_STORAGE_PROP);
         builder.property(SSH_AUTH_TYPE_PROP);
