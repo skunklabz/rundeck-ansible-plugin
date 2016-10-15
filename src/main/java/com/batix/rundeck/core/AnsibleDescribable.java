@@ -177,13 +177,13 @@ public interface AnsibleDescribable extends Describable {
             .title("Extra Variables")
             .description("Set additional playbook YAML or JSON variables.")
             .renderingOption(StringRenderingConstants.DISPLAY_TYPE_KEY,
-                    StringRenderingConstants.DisplayType.CODE)
+                    StringRenderingConstants.DisplayType.MULTI_LINE)
             .build();
     
     public static Property EXTRA_ATTRS_PROP = PropertyUtil.string(
             ANSIBLE_EXTRA_PARAM,
-            "Extra Ansible paramters",
-            "Set additional raw ansible parameters.",
+            "Extra Ansible arguments",
+            "Additional ansible raw command line arguments to be appended to the executed command.",
             false,
             ""
       );
