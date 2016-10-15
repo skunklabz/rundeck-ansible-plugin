@@ -207,9 +207,14 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
     runner.tempDirectory(tempDirectory).retainTempDirectory();
 
     StringBuilder args = new StringBuilder();
-    args.append("facts=").append(gatherFacts ? "True" : "False");
-    args.append(" ").append("tmpdir='").append(tempDirectory.toFile().getAbsolutePath()).append("'");
-    runner.extraArgs(args.toString());
+    args.append("facts: ")
+        .append(gatherFacts ? "True" : "False")
+        .append("\n")
+        .append("tmpdir: '")
+        .append(tempDirectory.toFile().getAbsolutePath())
+        .append("'");
+    
+    runner.extraVars(args.toString());
 
     try {
         runner.run();

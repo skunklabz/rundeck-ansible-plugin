@@ -74,6 +74,7 @@ public interface AnsibleDescribable extends Describable {
     public static final String ANSIBLE_LIMIT = "ansible-limit";
     public static final String ANSIBLE_IGNORE_TAGS = "ansible-ignore-tags-prefix";
     public static final String ANSIBLE_EXTRA_VARS = "ansible-extra-vars";
+    public static final String ANSIBLE_EXTRA_PARAM = "ansible-extra-param";
     public static final String ANSIBLE_VAULT_PATH = "ansible-vault-path";
     public static final String ANSIBLE_VAULTSTORE_PATH = "ansible-vault-storage-path";
 
@@ -127,8 +128,7 @@ public interface AnsibleDescribable extends Describable {
     );
 
     public static Property INVENTORY_PROP = PropertyUtil.string(ANSIBLE_INVENTORY, "ansible inventory File path",
-            "File Path to the ansible inventory to use",
-            false, null);
+            "File Path to the ansible inventory to use", false, null);
 
     public static Property EXECUTABLE_PROP = PropertyUtil.freeSelect(
               ANSIBLE_EXECUTABLE,
@@ -171,14 +171,23 @@ public interface AnsibleDescribable extends Describable {
               ""
     );
 
-    public static Property EXTRA_VARS_PROP = PropertyUtil.string(
-          ANSIBLE_EXTRA_VARS,
-          "Extra Variables",
-          "Set additional variables as key=value or YAML/JSON",
-          false,
-          null
-    );
-
+    static final Property EXTRA_VARS_PROP = PropertyBuilder.builder()
+            .string(ANSIBLE_EXTRA_VARS)
+            .required(false)
+            .title("Extra Variables")
+            .description("Set additional playbook YAML or JSON variables.")
+            .renderingOption(StringRenderingConstants.DISPLAY_TYPE_KEY,
+                    StringRenderingConstants.DisplayType.MULTI_LINE)
+            .build();
+    
+    public static Property EXTRA_ATTRS_PROP = PropertyUtil.string(
+            ANSIBLE_EXTRA_PARAM,
+            "Extra Ansible arguments",
+            "Additional ansible raw command line arguments to be appended to the executed command.",
+            false,
+            ""
+      );
+    
     static final Property VAULT_KEY_FILE_PROP = PropertyUtil.string(ANSIBLE_VAULT_PATH, "Vault Key File path",
             "File Path to the ansible vault Key to use",
             false, null);
