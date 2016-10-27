@@ -464,6 +464,7 @@ public class AnsibleRunner {
         // Make sure to always cleanup on failure and success
         proc.getErrorStream().close();
         proc.getInputStream().close();
+        proc.getOutputStream().close();
         proc.destroy();
 
         if (tempFile != null && !tempFile.delete()) {
