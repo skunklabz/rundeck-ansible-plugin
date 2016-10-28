@@ -71,6 +71,7 @@ public interface AnsibleDescribable extends Describable {
     public static final String DEFAULT_ANSIBLE_EXECUTABLE = "/bin/sh";
     public static final String ANSIBLE_GATHER_FACTS = "ansible-gather-facts";
     public static final String ANSIBLE_IGNORE_ERRORS = "ansible-ignore-errors";
+    public static final String ANSIBLE_EXTRA_TAG = "ansible-extra-tag";
     public static final String ANSIBLE_LIMIT = "ansible-limit";
     public static final String ANSIBLE_IGNORE_TAGS = "ansible-ignore-tags-prefix";
     public static final String ANSIBLE_EXTRA_VARS = "ansible-extra-vars";
@@ -171,6 +172,14 @@ public interface AnsibleDescribable extends Describable {
               ""
     );
 
+    public static Property EXTRA_TAG_PROP = PropertyUtil.string(
+            ANSIBLE_EXTRA_TAG,
+            "Additional host tag",
+            "This tag will be added to all hosts discovered by this source.",
+            false,
+            ""
+    );
+    
     static final Property EXTRA_VARS_PROP = PropertyBuilder.builder()
             .string(ANSIBLE_EXTRA_VARS)
             .required(false)

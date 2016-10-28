@@ -408,12 +408,12 @@ public class AnsibleRunner {
         listener = ListenerFactory.getListener(System.out);
     }
 
-    if (debug) {
-        System.out.println(" procArgs: " +  procArgs);
-    }
-
     if (extraParams != null && extraParams.length() > 0) {
         procArgs.addAll(tokenizeCommand(extraParams));
+    }
+    
+    if (debug) {
+        System.out.println(" procArgs: " +  procArgs);
     }
     
     // execute the ansible process
@@ -430,13 +430,13 @@ public class AnsibleRunner {
 
     try {
       proc = processBuilder.start();
-
+      OutputStream stdin = proc.getOutputStream();
+      OutputStreamWriter stdinw = new OutputStreamWriter(stdin);
+      
       if (sshUsePassword) {
          if (sshPass != null && sshPass.length() > 0) {
-            OutputStream stdin = proc.getOutputStream();
-            OutputStreamWriter out = new OutputStreamWriter(stdin);
-            out.write(sshPass+"\n");
-            out.close();
+        	 stdinw.write(sshPass+"\n");
+        	 stdinw.flush();
          } else {
             throw new AnsibleException("Missing ssh password.",AnsibleException.AnsibleFailureReason.AnsibleNonZero);
          }
@@ -444,14 +444,12 @@ public class AnsibleRunner {
 
       if (become) {
          if (becomePassword != null && becomePassword.length() > 0) {
-            OutputStream stdin = proc.getOutputStream();
-            OutputStreamWriter out = new OutputStreamWriter(stdin);
-            out.write(becomePassword+"\n");
-            out.close();
+        	 stdinw.write(becomePassword+"\n");
+        	 stdinw.flush();
          }
       }
 
-      proc.getOutputStream().close();
+      stdinw.close();
       Thread errthread = Logging.copyStreamThread(proc.getErrorStream(), listener);
       Thread outthread = Logging.copyStreamThread(proc.getInputStream(), listener);
       errthread.start();
@@ -483,6 +481,7 @@ public class AnsibleRunner {
         // Make sure to always cleanup on failure and success
         proc.getErrorStream().close();
         proc.getInputStream().close();
+        proc.getOutputStream().close();
         proc.destroy();
 
         if (tempFile != null && !tempFile.delete()) {

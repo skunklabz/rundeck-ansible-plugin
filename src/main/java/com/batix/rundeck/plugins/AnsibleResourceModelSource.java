@@ -41,6 +41,7 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
   private boolean ignoreErrors = false;
   private String limit;
   private String ignoreTagPrefix;
+  private String extraTag;
 
   protected String vaultPass;
   protected Boolean debug = false;
@@ -94,6 +95,8 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
     limit = (String) resolveProperty(AnsibleDescribable.ANSIBLE_LIMIT,null,configuration,executionDataContext);
     ignoreTagPrefix = (String) resolveProperty(AnsibleDescribable.ANSIBLE_IGNORE_TAGS,null,configuration,executionDataContext);
 
+    extraTag = (String) resolveProperty(AnsibleDescribable.ANSIBLE_EXTRA_TAG,null,configuration,executionDataContext);
+    
     sshAuthType = resolveProperty(AnsibleDescribable.ANSIBLE_SSH_AUTH_TYPE,AuthenticationType.privateKey.name(),configuration,executionDataContext);
     
     sshUser = (String) resolveProperty(AnsibleDescribable.ANSIBLE_SSH_USER,null,configuration,executionDataContext);
@@ -261,6 +264,9 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
           for (JsonElement ele : root.getAsJsonArray("group_names")) {
             if (ignoreTagPrefix != null && ignoreTagPrefix.length() > 0 && ele.getAsString().startsWith(ignoreTagPrefix)) continue;
             tags.add(ele.getAsString());
+          }
+          if (extraTag != null && extraTag.length() > 0) {
+        	tags.add(extraTag);
           }
           node.setTags(tags);
 

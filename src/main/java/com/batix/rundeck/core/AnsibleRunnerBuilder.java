@@ -327,6 +327,23 @@ public class AnsibleRunnerBuilder {
         return become;
     }
 
+    public String getExtraParams() {
+    	final String extraParams;
+    	extraParams = PropertyResolver.resolveProperty(
+    	            AnsibleDescribable.ANSIBLE_EXTRA_PARAM,
+    	            null,
+    	            getFrameworkProject(),
+    	            getFramework(),
+    	            getNode(),
+    	            getjobConf()
+    	            );
+    	
+    	if (null != extraParams && extraParams.contains("${")) {
+    	     return DataContextUtils.replaceDataReferences(extraParams, getContext().getDataContext());
+    	}
+    	return extraParams;
+    }
+    
     public BecomeMethodType getBecomeMethod() {
         String becomeMethod = PropertyResolver.resolveProperty(
                    AnsibleDescribable.ANSIBLE_BECOME_METHOD,
@@ -724,6 +741,11 @@ public class AnsibleRunnerBuilder {
             } else {
                runner = runner.debug(Boolean.FALSE);
             }
+        }
+
+        String extraParams = getExtraParams();
+        if (extraParams != null) {
+             runner = runner.extraParams(extraParams);
         }
 
         String extraVars = getExtraVars();
