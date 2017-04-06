@@ -1,3 +1,5 @@
+[![Gitter](https://img.shields.io/gitter/room/rundeck-ansible-plugin/Lobby.svg)](https://gitter.im/rundeck-ansible-plugin/Lobby)
+
 **This is an alpha release!** Use with caution.
 
 Please [report](https://github.com/Batix/rundeck-ansible-plugin/issues) any errors or suggestions!
