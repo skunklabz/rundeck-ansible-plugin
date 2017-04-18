@@ -1,4 +1,4 @@
-[![Gitter](https://img.shields.io/gitter/room/rundeck-ansible-plugin/Lobby.svg)](https://gitter.im/rundeck-ansible-plugin/Lobby)
+[![Gitter](https://img.shields.io/gitter/room/rundeck-ansible-plugin/Lobby.svg)](https://gitter.im/rundeck-ansible-plugin/Lobby) [Read more about Rundeck + Ansible](https://www.rundeck.com/ansible)
 
 **This is an alpha release!** Use with caution.
 
