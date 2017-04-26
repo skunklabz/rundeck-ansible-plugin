@@ -239,10 +239,14 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
           JsonObject root = json.getAsJsonObject();
 
           String hostname = root.get("inventory_hostname").getAsString();
-          if (root.has("ansible_host")) {
-            hostname = root.get("ansible_host").getAsString();
-          } else if (root.has("ansible_ssh_host")) { // deprecated variable
-            hostname = root.get("ansible_ssh_host").getAsString();
+          try {
+            if (root.has("ansible_host")) {
+              hostname = root.get("ansible_host").getAsString();
+            } else if (root.has("ansible_ssh_host")) { // deprecated variable
+              hostname = root.get("ansible_ssh_host").getAsString();
+            }
+          }catch(Exception ex){
+            System.out.println("[warn] Problem getting the ansible_host attribute from node " + hostname);
           }
 
           String nodename = root.get("inventory_hostname").getAsString();
