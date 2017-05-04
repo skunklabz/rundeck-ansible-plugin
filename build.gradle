@@ -27,8 +27,8 @@ configurations {
 }
 
 dependencies {
-  pluginLibs 'com.google.code.gson:gson:2.5'
-  compile 'org.rundeck:rundeck-core:2.6.3'
+  pluginLibs 'com.google.code.gson:gson:2.8.0'
+  compile 'org.rundeck:rundeck-core:2.8.2'
 }
 
 task copyToLib(type: Copy) {
