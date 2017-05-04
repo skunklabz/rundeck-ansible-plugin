@@ -8,21 +8,21 @@ import com.dtolabs.rundeck.core.common.INodeEntry;
 import com.dtolabs.rundeck.core.common.IRundeckProject;
 import com.dtolabs.rundeck.core.execution.ExecutionContext;
 import com.dtolabs.rundeck.core.execution.impl.jsch.JschScpFileCopier;
-import com.dtolabs.rundeck.core.execution.service.DestinationFileCopier;
+import com.dtolabs.rundeck.core.execution.service.FileCopier;
 import com.dtolabs.rundeck.core.execution.service.FileCopierException;
 import com.dtolabs.rundeck.core.plugins.Plugin;
-import com.dtolabs.rundeck.core.plugins.configuration.Description;
 import com.dtolabs.rundeck.core.plugins.configuration.ConfigurationException;
+import com.dtolabs.rundeck.core.plugins.configuration.Description;
 import com.dtolabs.rundeck.plugins.ServiceNameConstants;
 import com.dtolabs.rundeck.plugins.util.DescriptionBuilder;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.io.File;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 @Plugin(name = AnsibleFileCopier.SERVICE_PROVIDER_NAME, service = ServiceNameConstants.FileCopier)
-public class AnsibleFileCopier implements DestinationFileCopier, AnsibleDescribable {
+public class AnsibleFileCopier implements FileCopier, AnsibleDescribable {
 
   public static final String SERVICE_PROVIDER_NAME = "com.batix.rundeck.plugins.AnsibleFileCopier";
 
@@ -59,21 +59,6 @@ public class AnsibleFileCopier implements DestinationFileCopier, AnsibleDescriba
   @Override
   public String copyScriptContent(ExecutionContext context, String script, INodeEntry node, String destination) throws FileCopierException {
     return doFileCopy(context, null, null, script, node, destination);
-  }
-
-  @Override
-  public String copyFileStream(ExecutionContext context, InputStream input, INodeEntry node) throws FileCopierException {
-    return doFileCopy(context, null, input, null, node, null);
-  }
-
-  @Override
-  public String copyFile(ExecutionContext context, File file, INodeEntry node) throws FileCopierException {
-    return doFileCopy(context, file, null, null, node, null);
-  }
-
-  @Override
-  public String copyScriptContent(ExecutionContext context, String script, INodeEntry node) throws FileCopierException {
-    return doFileCopy(context, null, null, script, node, null);
   }
 
   private String doFileCopy(
