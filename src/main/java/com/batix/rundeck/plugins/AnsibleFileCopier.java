@@ -87,6 +87,9 @@ public class AnsibleFileCopier implements DestinationFileCopier, AnsibleDescriba
 
     AnsibleRunner runner = null;
 
+    //check if the node is a windows host
+    boolean windows=node.getAttributes().get("osFamily").toLowerCase().contains("windows");
+
     IRundeckProject project = context.getFramework().getFrameworkProjectMgr().getFrameworkProject(context.getFrameworkProject());
 
     if (destinationPath == null) {
@@ -109,7 +112,13 @@ public class AnsibleFileCopier implements DestinationFileCopier, AnsibleDescriba
     String cmdArgs = "src='" + localTempFile.getAbsolutePath() + "' dest='" + destinationPath + "'";
 
     Map<String, Object> jobConf = new HashMap<String, Object>();
-    jobConf.put(AnsibleDescribable.ANSIBLE_MODULE,"copy");
+
+    if(windows){
+        jobConf.put(AnsibleDescribable.ANSIBLE_MODULE,"win_copy");
+    }else{
+        jobConf.put(AnsibleDescribable.ANSIBLE_MODULE,"copy");
+    }
+
     jobConf.put(AnsibleDescribable.ANSIBLE_MODULE_ARGS,cmdArgs.toString());
     jobConf.put(AnsibleDescribable.ANSIBLE_LIMIT,node.getNodename());
 

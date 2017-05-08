@@ -294,12 +294,12 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
           // ansible_system     = Linux   = osFamily in Rundeck
           // ansible_os_family  = Debian  = osName in Rundeck
 
-          if (root.has("ansible_system")) {
-            node.setOsFamily(root.get("ansible_system").getAsString());
+          if (root.has("ansible_os_family")) {
+            node.setOsFamily(root.get("ansible_os_family").getAsString());
           }
 
-          if (root.has("ansible_os_family")) {
-            node.setOsName(root.get("ansible_os_family").getAsString());
+          if (root.has("ansible_os_name")) {
+            node.setOsName(root.get("ansible_os_name").getAsString());
           }
 
           if (root.has("ansible_architecture")) {

@@ -75,6 +75,9 @@ public class AnsibleNodeExecutor implements NodeExecutor, AnsibleDescribable {
 
     StringBuilder cmdArgs = new StringBuilder();
 
+    //check if the node is a windows host
+    boolean windows=node.getAttributes().get("osFamily").toLowerCase().contains("windows");
+
     String executable = PropertyResolver.resolveProperty(
                           AnsibleDescribable.ANSIBLE_EXECUTABLE,
                           AnsibleDescribable.DEFAULT_ANSIBLE_EXECUTABLE,
@@ -84,13 +87,30 @@ public class AnsibleNodeExecutor implements NodeExecutor, AnsibleDescribable {
                           null
                         );
 
-    cmdArgs.append("executable=").append(executable);
-    for (String cmd : command) {
-      cmdArgs.append(" '").append(cmd).append("'");
+    if(windows) {
+        //if is a windows host, not add the executable
+        for (String cmd : command) {
+            cmdArgs.append(" ").append(cmd).append("");
+        }
+    }else{
+        cmdArgs.append("executable=").append(executable);
+        for (String cmd : command) {
+            cmdArgs.append(" '").append(cmd).append("'");
+        }
+
     }
 
+
     Map<String, Object> jobConf = new HashMap<String, Object>();
-    jobConf.put(AnsibleDescribable.ANSIBLE_MODULE,"shell");
+
+    if(windows){
+        //for windows host, the shell must be win_shell
+        //look: http://docs.ansible.com/ansible/intro_windows.html
+        jobConf.put(AnsibleDescribable.ANSIBLE_MODULE,"win_shell");
+    }else{
+        jobConf.put(AnsibleDescribable.ANSIBLE_MODULE,"shell");
+    }
+
     jobConf.put(AnsibleDescribable.ANSIBLE_MODULE_ARGS,cmdArgs.toString());
     jobConf.put(AnsibleDescribable.ANSIBLE_LIMIT,node.getNodename());
 
