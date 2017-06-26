@@ -6,7 +6,7 @@ The image can be found on the [Docker Hub](https://hub.docker.com/r/batix/rundec
 
 ### Preparations ###
 
-Create a new directory somewhere on your disk and create a new text file in there called `inventory.ini`. This file tells Ansible which hosts (also known as 'nodes') are available. It may also contain groups - read more about the inventory in the [Ansible documentation](http://docs.ansible.com/ansible/intro_inventory.html). Fill it with one ore more hosts you have access to, for example:
+Create a new directory somewhere on your disk and create a new text file in there called `inventory.ini`. This file tells Ansible which hosts (also known as 'nodes') are available. It may also contain groups - read more about the inventory in the [Ansible documentation](http://docs.ansible.com/ansible/intro_inventory.html). Fill it with one or more hosts you have access to, for example:
 
 ```ini
 [test-group]
@@ -57,7 +57,7 @@ docker rm -vf rundeck-test
 The environment variables `RDECK_HOST` and `RDECK_PORT` can be used to customize the address of the installation (note that you need to change the `-p` argument as well):
 
 ```bash
-docker run -d --name rundeck-test -p 34440:34440 -e RDECK_HOST=my.hosted.server -e RDECK_PORT=34440 -v `pwd`:/data batix/rundeck-ansible
+docker run -d --name rundeck-test -p 34440:34440 -e RDECK_ADMIN_PASS=SUPER_SECRET -e RDECK_HOST=my.hosted.server -e RDECK_PORT=34440 -v `pwd`:/data batix/rundeck-ansible
 ```
 
 **Warning:** Don't leave your test install running exposed to the public! Read up on the proper install procedure and configuration in the [Rundeck docs](http://rundeck.org/docs/administration/installation.html). At least set a reasonable difficult password via `RDECK_ADMIN_PASS`.
