@@ -346,11 +346,8 @@ public class AnsibleRunner {
     }
 
     if (debug == Boolean.TRUE) {
-      procArgs.add("-vvvv");
-    } else {
-      procArgs.add("-v");
+      procArgs.add("-vvv");
     }
-
 
     if (extraVars != null && extraVars.length() > 0) {
     	tempVarsFile = File.createTempFile("ansible-runner", "extra-vars");
