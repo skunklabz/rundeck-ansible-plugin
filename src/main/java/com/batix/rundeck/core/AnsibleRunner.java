@@ -24,7 +24,8 @@ public class AnsibleRunner {
 
   enum AnsibleCommand {
     AdHoc("ansible"),
-    Playbook("ansible-playbook");
+    PlaybookPath("ansible-playbook-path"),
+	PlaybookInline("ansible-playbook-inline");
 
     final String command;
     AnsibleCommand(String command) {
@@ -39,8 +40,14 @@ public class AnsibleRunner {
     return ar;
   }
 
-  public static AnsibleRunner playbook(String playbook) {
-    AnsibleRunner ar = new AnsibleRunner(AnsibleCommand.Playbook);
+  public static AnsibleRunner playbookPath(String playbook) {
+    AnsibleRunner ar = new AnsibleRunner(AnsibleCommand.PlaybookPath);
+    ar.playbook = playbook;
+    return ar;
+  }
+  
+  public static AnsibleRunner playbookInline(String playbook) {
+    AnsibleRunner ar = new AnsibleRunner(AnsibleCommand.PlaybookInline);
     ar.playbook = playbook;
     return ar;
   }
@@ -322,8 +329,14 @@ public class AnsibleRunner {
       }
       procArgs.add("-t");
       procArgs.add(tempDirectory.toFile().getAbsolutePath());
-    } else if (type == AnsibleCommand.Playbook) {
+    } else if (type == AnsibleCommand.PlaybookPath) {
       procArgs.add(playbook);
+    } else if (type == AnsibleCommand.PlaybookInline) {
+      procArgs.add("$@");
+      procArgs.add("/dev/stdin");
+      procArgs.add("<<ENDRUNDECKANSIBLE");
+      procArgs.add(playbook);
+      procArgs.add("ENDRUNDECKANSBILE");
     }
 
     if (inventory != null && inventory.length() > 0) {

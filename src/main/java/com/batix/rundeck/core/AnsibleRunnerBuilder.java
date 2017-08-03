@@ -519,16 +519,28 @@ public class AnsibleRunnerBuilder {
         }
     }
 
-    public String getPlaybook() {
+    public String getPlaybookPath() {
         String playbook = null;
-        if ( getjobConf().containsKey(AnsibleDescribable.ANSIBLE_PLAYBOOK) ) {
-        	playbook = (String) jobConf.get(AnsibleDescribable.ANSIBLE_PLAYBOOK);
+        if ( getjobConf().containsKey(AnsibleDescribable.ANSIBLE_PLAYBOOK_PATH) ) {
+        	playbook = (String) jobConf.get(AnsibleDescribable.ANSIBLE_PLAYBOOK_PATH);
         }
 
         if (null != playbook && playbook.contains("${")) {
             return DataContextUtils.replaceDataReferences(playbook, getContext().getDataContext());
         }
         return playbook;
+    }
+    
+    public String getPlaybookInline() {
+    	 	String playbook = null;
+         if ( getjobConf().containsKey(AnsibleDescribable.ANSIBLE_PLAYBOOK_INLINE) ) {
+         	playbook = (String) jobConf.get(AnsibleDescribable.ANSIBLE_PLAYBOOK_INLINE);
+         }
+
+         if (null != playbook && playbook.contains("${")) {
+             return DataContextUtils.replaceDataReferences(playbook, getContext().getDataContext());
+         }
+         return playbook;
     }
 
     public String getModule() {
@@ -694,12 +706,15 @@ public class AnsibleRunnerBuilder {
     public AnsibleRunner buildAnsibleRunner() throws ConfigurationException{
 
         AnsibleRunner runner = null;
-
-        String playbook = getPlaybook();
-        String module = getModule();
-        if (playbook != null) {
-            runner = AnsibleRunner.playbook(playbook);
-        } else if (module != null) {
+        
+        String playbook;
+        String module;
+        
+        if ((playbook = getPlaybookPath()) != null) {
+            runner = AnsibleRunner.playbookPath(playbook);
+        } else if ((playbook = getPlaybookInline()) != null) {
+        		runner = AnsibleRunner.playbookInline(playbook);
+        } else if ((module  = getModule()) != null) {
             runner = AnsibleRunner.adHoc(module, getModuleArgs());
         } else {
             throw new ConfigurationException("Missing module or playbook job arguments");          

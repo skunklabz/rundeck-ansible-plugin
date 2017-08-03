@@ -62,7 +62,8 @@ public interface AnsibleDescribable extends Describable {
     
     public static final String SERVICE_PROVIDER_TYPE = "ansible-service";
 
-    public static final String ANSIBLE_PLAYBOOK = "ansible-playbook";
+    public static final String ANSIBLE_PLAYBOOK_PATH = "ansible-playbook-path";
+    public static final String ANSIBLE_PLAYBOOK_INLINE = "ansible-playbook-inline";
     public static final String ANSIBLE_INVENTORY = "ansible-inventory";
     public static final String ANSIBLE_MODULE = "ansible-module";
     public static final String ANSIBLE_MODULE_ARGS = "ansible-module-args";
@@ -104,14 +105,25 @@ public interface AnsibleDescribable extends Describable {
     public static final String PROJ_PROP_PREFIX = "project.";
     public static final String FWK_PROP_PREFIX = "framework.";
 
-    public static Property PLAYBOOK_PROP = PropertyUtil.string(
-              ANSIBLE_PLAYBOOK,
+    public static Property PLAYBOOK_PATH_PROP = PropertyUtil.string(
+    			ANSIBLE_PLAYBOOK_PATH,
               "Playbook",
               "Path to a playbook",
               true,
               null
     );
+    
+    public static Property PLAYBOOK_INLINE_PROP = PropertyBuilder.builder()
+    		.string(ANSIBLE_PLAYBOOK_INLINE)
+    		.required(false)
+    		.title("Playbook")
+        .description("Inline Ansible Playbook")
+        .renderingOption(StringRenderingConstants.DISPLAY_TYPE_KEY, StringRenderingConstants.DisplayType.CODE)
+        .renderingOption(StringRenderingConstants.CODE_SYNTAX_MODE, "yaml")
+        .renderingOption(StringRenderingConstants.CODE_SYNTAX_SELECTABLE, false)
+    		.build();
 
+ 
     public static Property MODULE_PROP = PropertyUtil.string(
               ANSIBLE_MODULE,
               "Module",

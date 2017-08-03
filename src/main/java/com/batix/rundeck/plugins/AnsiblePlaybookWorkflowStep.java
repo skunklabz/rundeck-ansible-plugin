@@ -28,7 +28,7 @@ public class AnsiblePlaybookWorkflowStep implements StepPlugin, AnsibleDescribab
         builder.title("Ansible Playbook");
         builder.description("Runs an Ansible Playbook.");
 
-        builder.property(PLAYBOOK_PROP);
+        builder.property(PLAYBOOK_PATH_PROP);
         builder.property(EXTRA_VARS_PROP);
         builder.property(VAULT_KEY_FILE_PROP);
         builder.property(VAULT_KEY_STORAGE_PROP);
