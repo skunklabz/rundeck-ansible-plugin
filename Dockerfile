@@ -27,6 +27,7 @@ RUN apk --no-cache add openjdk8-jre bash curl && \
   curl -SLo ${RDECK_JAR} http://dl.bintray.com/rundeck/rundeck-maven/rundeck-launcher-2.9.1.jar
 COPY docker/realm.properties ${RDECK_BASE}/server/config/
 COPY docker/run.sh /
+RUN chmod +x /run.sh
 
 # install plugin from GitHub
 # check newest version: https://github.com/Batix/rundeck-ansible-plugin/releases
