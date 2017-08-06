@@ -50,7 +50,7 @@ TBD
 
 ## Docker ##
 
-After publishing the release, edit `Dockerfile` and replace the plugin version with the new one (also check the Ansible and Rundeck versions, while your at it).
+After publishing the release, edit `Dockerfile` and replace the plugin version with the new one (also check the Ansible and Rundeck versions, while your at it - see the comments there for where to find the newest versions).
 
 Change into the `docker` directory and build the image with `docker build --pull -t batix/rundeck-ansible .`, this creates a local image and tags it. `--pull` will always look for the newest alpine image. Add `--no-cache` to force a complete rebuild.
 

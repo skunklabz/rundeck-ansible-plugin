@@ -6,6 +6,7 @@ MAINTAINER David Kirstein <dak@batix.com>
 # https://github.com/William-Yeh/docker-ansible
 
 # install Ansible
+# check newest version: https://pypi.python.org/pypi/ansible
 RUN apk --no-cache add sudo python py-pip openssl ca-certificates && \
   apk --no-cache add --virtual build-deps python-dev libffi-dev openssl-dev build-base && \
   pip --no-cache-dir install --upgrade pip cffi && \
@@ -13,7 +14,8 @@ RUN apk --no-cache add sudo python py-pip openssl ca-certificates && \
   apk del build-deps && \
   mkdir -p /etc/ansible
 
-# install Rundeck
+# install Rundeck via launcher
+# check newest version: http://rundeck.org/downloads.html
 ENV RDECK_BASE=/opt/rundeck
 ENV RDECK_JAR=${RDECK_BASE}/rundeck-launcher.jar
 ENV PATH=${PATH}:${RDECK_BASE}/tools/bin
@@ -22,12 +24,13 @@ ENV RDECK_ADMIN_PASS=rdtest2017
 RUN apk --no-cache add openjdk8-jre bash curl && \
   mkdir -p ${RDECK_BASE} && \
   mkdir ${RDECK_BASE}/libext && \
-  curl -SLo ${RDECK_JAR} http://dl.bintray.com/rundeck/rundeck-maven/rundeck-launcher-2.8.2.jar
+  curl -SLo ${RDECK_JAR} http://dl.bintray.com/rundeck/rundeck-maven/rundeck-launcher-2.9.1.jar
 COPY docker/realm.properties ${RDECK_BASE}/server/config/
 COPY docker/run.sh /
 
 # install plugin from GitHub
-RUN curl -SLo ${RDECK_BASE}/libext/ansible-plugin.jar https://github.com/Batix/rundeck-ansible-plugin/releases/download/2.0.2/ansible-plugin-2.0.2.jar
+# check newest version: https://github.com/Batix/rundeck-ansible-plugin/releases
+RUN curl -SLo ${RDECK_BASE}/libext/ansible-plugin.jar https://github.com/Batix/rundeck-ansible-plugin/releases/download/2.1.0/ansible-plugin-2.1.0.jar
 
 # install local plugin
 #COPY build/libs/ansible-plugin-*.jar ${RDECK_BASE}/libext/
