@@ -123,7 +123,7 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
 
   public AnsibleRunner buildAnsibleRunner() throws ResourceModelSourceException{
 
-	  AnsibleRunner runner = AnsibleRunner.playbook("gather-hosts.yml");
+	  AnsibleRunner runner = AnsibleRunner.playbookPath("gather-hosts.yml");
 
 	  if ("true".equals(System.getProperty("ansible.debug"))) {
 		  runner.debug();
