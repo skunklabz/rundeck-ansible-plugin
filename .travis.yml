@@ -1,19 +1,24 @@
 sudo: required
 services:
-  - docker
+- docker
 language: java
-
-# see https://docs.travis-ci.com/user/languages/java/#Caching
 before_cache:
-  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
-  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+- rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+- rm -fr $HOME/.gradle/caches/*/plugin-resolution/
 cache:
   directories:
-    - $HOME/.gradle/caches/
-    - $HOME/.gradle/wrapper/
-
+  - "$HOME/.gradle/caches/"
+  - "$HOME/.gradle/wrapper/"
 deploy:
-  skip_cleanup: true
+- skip_cleanup: true
+  on:
+    branch: master
+    tags: true
+  provider: releases
+  api_key:
+    secure: Ad+Vym75lbIPica7QKlEtAsWc5uuB69HBJ1423Kc3AsH7OIUaMiMfF6K3s3WKdgXc6G9nYwE2k2HTrFdRZxWn3bggrZmiYegxFBjDSeheZXBgVpZ2h2wYr3XhT5K9dIt3sCqGWWaw5XV+fjR69XgQPjDTSOS2SC2/t6g2lvPpOANfJE93w5liSQTSqRT7ZTX56pLZOAtqyjES+H5Px1HCCAwVAcGH1GyENqV7addL2EDR+wBMB3uOHrF32XGU9Dk074H3jTu408ezD3YNfq4RxClN65wf4oRxrtgZu3h/StHg7DQZwaXReiMWdqu7gCM9CDti+PIchtw53SlGsVwIVfE1uNPYMAKBOMJbHgd3BgQfdLAdLkHnNTkteUJ4+v4lDuXWAcOPN5vF2e79yF3kLMVX+fHs+hACIzPX72AJZ69PAx6p22B7QzX1VjGNbeCJ5tD/986r4inAVVH5UB5/htsuAAWXkdgrnNs+yoH9kGhaJTMT3JcuZ4mDtgRP537Fs8Yhuu9ekEbi+bb2RbFXdpHKP305UNLzH3crnuHUgciVpccAcOibHH80HYFFDhwNfBZ4fZ0RAqGvgTwbh8fhuNr4Lnhb1F2hZSZTa3kc8UydOaYhhd0JiV5KOoOS9IBF98giZUVLjqbwRsRcGb/s4WmKNEjgdoO2Ryg/sJnfcA=
+  file: build/libs/ansible-plugin-${TRAVIS_TAG}.jar
+- skip_cleanup: true
   on:
     branch: master
     tags: true

@@ -35,17 +35,19 @@ TBD
 
 ## Releases ##
 
+Version / tags / release names don't have a leading 'v', consist of major.minor.patch and use Semantic Versioning.
+
 - Change version in [build.gradle line 2](build.gradle)
     - Refer to [Semantic Versioning](http://semver.org/) to determine which level to increment
-- Build a new jar with gradle (run `gradlew jar`), it will be in `build/libs`
+- (if manual) Build a new jar with gradle (run `gradlew jar`), it will be in `build/libs`
 - Check if everything works
     - *Tests are a TODO, I'm working on some automated Docker testing atm*
-- Commit and push with message like "v1.3.0"
+- Commit and push with message like "1.3.0"
 - Draft a new release on GitHub
     - Tag version: 1.3.0
-    - Release title: v1.3.0
+    - Release title: 1.3.0
     - Describe the notable changes
-    - Upload the .jar (drag and drop for example)
+    - (if manual) Upload the .jar (drag and drop for example)
 - Publish the release
 
 ## Docker ##
