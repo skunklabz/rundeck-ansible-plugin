@@ -307,7 +307,8 @@ public class AnsibleRunner {
     if (tempDirectory == null) {
       tempDirectory = Files.createTempDirectory("ansible-rundeck");
     }
-
+    
+    File tempPlaybook = null;
     File tempFile = null;
     File tempVaultFile = null;
     File tempPkFile = null;
@@ -332,11 +333,10 @@ public class AnsibleRunner {
     } else if (type == AnsibleCommand.PlaybookPath) {
       procArgs.add(playbook);
     } else if (type == AnsibleCommand.PlaybookInline) {
-      procArgs.add("$@");
-      procArgs.add("/dev/stdin");
-      procArgs.add("<<ENDRUNDECKANSIBLE");
-      procArgs.add(playbook);
-      procArgs.add("ENDRUNDECKANSBILE");
+    	
+	  tempPlaybook = File.createTempFile("ansible-runner", "playbook");
+	  Files.write(tempPlaybook.toPath(), playbook.toString().getBytes());
+	  procArgs.add(tempPlaybook.getAbsolutePath());
     }
 
     if (inventory != null && inventory.length() > 0) {
@@ -346,6 +346,7 @@ public class AnsibleRunner {
     if (limits != null && limits.size() == 1) {
       procArgs.add("-l");
       procArgs.add(limits.get(0));
+      
     } else if (limits != null && limits.size() > 1) {
       tempFile = File.createTempFile("ansible-runner", "targets");
       StringBuilder sb = new StringBuilder();
@@ -445,7 +446,7 @@ public class AnsibleRunner {
       proc = processBuilder.start();
       OutputStream stdin = proc.getOutputStream();
       OutputStreamWriter stdinw = new OutputStreamWriter(stdin);
-
+      
       if (sshUsePassword) {
          if (sshPass != null && sshPass.length() > 0) {
         	 stdinw.write(sshPass+"\n");
