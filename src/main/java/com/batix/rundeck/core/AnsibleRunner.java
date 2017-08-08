@@ -24,8 +24,8 @@ public class AnsibleRunner {
 
   enum AnsibleCommand {
     AdHoc("ansible"),
-    PlaybookPath("ansible-playbook-path"),
-	PlaybookInline("ansible-playbook-inline");
+    PlaybookPath("ansible-playbook"),
+	   PlaybookInline("ansible-playbook");
 
     final String command;
     AnsibleCommand(String command) {
@@ -45,7 +45,7 @@ public class AnsibleRunner {
     ar.playbook = playbook;
     return ar;
   }
-  
+
   public static AnsibleRunner playbookInline(String playbook) {
     AnsibleRunner ar = new AnsibleRunner(AnsibleCommand.PlaybookInline);
     ar.playbook = playbook;
@@ -78,7 +78,7 @@ public class AnsibleRunner {
   private String extraParams;
   private String vaultPass;
   private boolean ignoreErrors = false;
-  
+
   // ansible ssh args
   private boolean sshUsePassword = false;
   private String sshPass;
@@ -133,7 +133,7 @@ public class AnsibleRunner {
 	    }
 	    return this;
 	  }
-  
+
   public AnsibleRunner extraVars(String args) {
     if (args != null && args.length() > 0) {
     	extraVars = args;
@@ -164,7 +164,7 @@ public class AnsibleRunner {
 	  this.ignoreErrors = ignoreErrors;
 	  return this;
   }
-  
+
   public AnsibleRunner sshUser(String user) {
     if (user != null && user.length() > 0) {
       sshUser = user;
@@ -312,7 +312,7 @@ public class AnsibleRunner {
     File tempVaultFile = null;
     File tempPkFile = null;
     File tempVarsFile = null;
-    
+
     List<String> procArgs = new ArrayList<>();
     procArgs.add(type.command);
 
@@ -424,11 +424,11 @@ public class AnsibleRunner {
     if (extraParams != null && extraParams.length() > 0) {
         procArgs.addAll(tokenizeCommand(extraParams));
     }
-    
+
     if (debug) {
         System.out.println(" procArgs: " +  procArgs);
     }
-    
+
     // execute the ansible process
     ProcessBuilder processBuilder = new ProcessBuilder()
       .command(procArgs)
@@ -436,7 +436,7 @@ public class AnsibleRunner {
     Process proc = null;
 
     Map<String, String> processEnvironment = processBuilder.environment();
-    
+
     for (String optionName : this.options.keySet()) {
         processEnvironment.put(optionName, this.options.get(optionName));
     }
@@ -445,7 +445,7 @@ public class AnsibleRunner {
       proc = processBuilder.start();
       OutputStream stdin = proc.getOutputStream();
       OutputStreamWriter stdinw = new OutputStreamWriter(stdin);
-      
+
       if (sshUsePassword) {
          if (sshPass != null && sshPass.length() > 0) {
         	 stdinw.write(sshPass+"\n");
@@ -472,7 +472,7 @@ public class AnsibleRunner {
       errthread.join();
       System.err.flush();
       System.out.flush();
-      
+
       if (result != 0) {
     	  if (ignoreErrors == false) {
               throw new AnsibleException("ERROR: Ansible execution returned with non zero code.",
@@ -519,4 +519,3 @@ public class AnsibleRunner {
   }
 
 }
-

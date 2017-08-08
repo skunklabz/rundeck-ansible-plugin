@@ -42,7 +42,7 @@ Run any Ansible module! You can specify the module name and arguments.
 
 ### Run Ansible Playbooks ###
 
-Run a playbook as a node or workflow step (see note above). You specify a path to a file, which must be accessible to Rundeck.
+Run a playbook as a node or workflow step (see note above). You can specify either a path to a playbook file (which must be accessible to Rundeck), or write an inline playbook.
 
 ## Configuration ##
 
@@ -54,7 +54,7 @@ the value associated with each ansible configuration  by checking the configurat
 * else if the attribute is defined at the project level
 * else if the attribute is defined at the framework level
 
-Note that Node attributes are only evaluated for Node Executor jobs, Workflow Jobs (Playbook and Module) use only job configurations, and project/framework configurations. 
+Note that Node attributes are only evaluated for Node Executor jobs, Workflow Jobs (Playbook and Module) use only job configurations, and project/framework configurations.
 
 The following configuration attributes can be set on the Node, or in the project.properties or framework.properties. To add them to project.properties, prefix them with "project." and for framework.properties prefix them with "framework.":
 
@@ -66,7 +66,7 @@ The following configuration attributes can be set on the Node, or in the project
 * `ansible-ssh-auth-type` - Type of authentication to use, "password" or "privatekey", default: "privatekey".
 * `ansible-ssh-user` - Ansible ssh User to user. (default rundeck)
 * `ansible-ssh-password-option` - Specifies a [Secure Authentication Option][1] from a Job to use as the authentication password. (format: "NAME" ). This option take precedence over `ansible-ssh-password-storage-path`
-	* default-value: "ansible-ssh-password", so simply define a Secure Authentication Option on your Job with the name "ansible-ssh-password". 
+	* default-value: "ansible-ssh-password", so simply define a Secure Authentication Option on your Job with the name "ansible-ssh-password".
 * `ansible-ssh-password-storage-path` - Specifies a [Key Storage Path][] to look up the authentication password from.
 * `ansible-ssh-timeout` - Ansible ssh timeout, default: 10.
 * `ansible-ssh-keypath` - Specifies the path the ssh private key to use as the authentication privatekey.
@@ -84,14 +84,14 @@ Password authentication can be performed in one of two ways:
 
 1. Create a Rundeck Job with a [Secure Authentication Option][1], to pass in the password to use.  The default name of this option should be "ansible-ssh-password", but you can change the name that is expected, if necessary.
 2. Use the Rundeck [Key Storage Facility][2] to store a password, and use the path to it as the `ansible-ssh-password-storage-path`
-Note that the first takes precedence in evaluation over the second. 
+Note that the first takes precedence in evaluation over the second.
 
 Private Key authentication can be performed by using a full path to the shh private key (make sure the file is owned by rundeck and access permissions are set to 0600) or using [Key Storage Facility][2] to store a private key.
 
 Become password configuration is very similar to ssh password, you can use either [Secure Authentication Option][1], the default option name should be "ansible-become-password" or use [Key Storage Facility][2] to store a password, and use the path to it as the `ansible-become-password-storage-path`. Also for become password just like ssh password the first takes precedence in evaluation over the second.  
 
 [1]: http://rundeck.org/docs/manual/job-options.html#secure-options
-[2]: http://rundeck.org/docs/administration/key-storage.html 
+[2]: http://rundeck.org/docs/administration/key-storage.html
 
 ## Requirements ##
 
