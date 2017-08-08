@@ -35,11 +35,21 @@ TBD
 
 ## Releases ##
 
-Version / tags / release names don't have a leading 'v', consist of major.minor.patch and use Semantic Versioning.
+Version / tags / release names don't have a leading 'v', consist of major.minor.patch and use [Semantic Versioning](http://semver.org/).
+
+Binaries will be automatically built when a GitHub release is published. On a successful CI build:
+- The .jar file will be added to the GitHub release
+- A new Docker image will be built and pushed to the Docker Hub
+
+All you have to do is create a new release, give it a name and tag (for example 1.3.0, no leading "v") and describe the changes. [Travis](https://travis-ci.org/Batix/rundeck-ansible-plugin) takes care of the rest.
+
+### Old Manual Release ###
+
+*This is deprecated.*
 
 - Change version in [build.gradle line 2](build.gradle)
     - Refer to [Semantic Versioning](http://semver.org/) to determine which level to increment
-- (if manual) Build a new jar with gradle (run `gradlew jar`), it will be in `build/libs`
+- Build a new jar with gradle (run `gradlew jar`), it will be in `build/libs`
 - Check if everything works
     - *Tests are a TODO, I'm working on some automated Docker testing atm*
 - Commit and push with message like "1.3.0"
@@ -47,7 +57,7 @@ Version / tags / release names don't have a leading 'v', consist of major.minor.
     - Tag version: 1.3.0
     - Release title: 1.3.0
     - Describe the notable changes
-    - (if manual) Upload the .jar (drag and drop for example)
+    - Upload the .jar (drag and drop for example)
 - Publish the release
 
 ## Docker ##
@@ -56,7 +66,9 @@ A Docker image will be automatically built and published for tags on the master 
 
 Periodically update the `Dockerfile` with newer Ansible and Rundeck versions - see the comments there for where to find the newest versions.
 
-### Manual Release ###
+### Old Manual Release ###
+
+*This is deprecated.*
 
 Build the image in the root directory with `docker build --pull -t batix/rundeck-ansible .`, this creates a local image and tags it. `--pull` will always look for the newest alpine image. Add `--no-cache` to force a complete rebuild.
 
