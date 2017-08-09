@@ -31,10 +31,10 @@ RUN chmod +x /run.sh
 
 # install plugin from GitHub
 # check newest version: https://github.com/Batix/rundeck-ansible-plugin/releases
-RUN curl -SLo ${RDECK_BASE}/libext/ansible-plugin.jar https://github.com/Batix/rundeck-ansible-plugin/releases/download/2.1.0/ansible-plugin-2.1.0.jar
+#RUN curl -SLo ${RDECK_BASE}/libext/ansible-plugin.jar https://github.com/Batix/rundeck-ansible-plugin/releases/download/2.1.0/ansible-plugin-2.1.0.jar
 
-# install local plugin
-#COPY build/libs/ansible-plugin-*.jar ${RDECK_BASE}/libext/
+# install locally built plugin
+COPY build/libs/ansible-plugin-*.jar ${RDECK_BASE}/libext/
 
 # create project
 ENV PROJECT_BASE=${RDECK_BASE}/projects/Test-Project

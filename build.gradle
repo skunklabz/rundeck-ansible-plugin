@@ -1,5 +1,5 @@
 group 'com.batix.rundeck'
-version '2.1.2'
+version = System.env.TRAVIS_TAG ?: "SNAPSHOT"
 
 ext.rundeckPluginVersion = '1.1'
 ext.pluginClassNames = [
