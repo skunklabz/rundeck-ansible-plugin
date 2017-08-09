@@ -197,8 +197,9 @@ public interface AnsibleDescribable extends Describable {
             .required(false)
             .title("Extra Variables")
             .description("Set additional playbook YAML or JSON variables.")
-            .renderingOption(StringRenderingConstants.DISPLAY_TYPE_KEY,
-                    StringRenderingConstants.DisplayType.MULTI_LINE)
+            .renderingOption(StringRenderingConstants.DISPLAY_TYPE_KEY, StringRenderingConstants.DisplayType.CODE)
+            .renderingOption(StringRenderingConstants.CODE_SYNTAX_MODE, "yaml")
+            .renderingOption(StringRenderingConstants.CODE_SYNTAX_SELECTABLE, true)
             .build();
     
     public static Property EXTRA_ATTRS_PROP = PropertyUtil.string(
