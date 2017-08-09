@@ -482,7 +482,7 @@ public class AnsibleRunner {
             Thread.currentThread().interrupt();
             throw new AnsibleException("ERROR: Ansible Execution Interrupted.", e, AnsibleException.AnsibleFailureReason.Interrupted);
     } catch (IOException e) {
-            throw new AnsibleException("ERROR: Ansible IO failure.", e, AnsibleException.AnsibleFailureReason.IOFailure);
+        throw new AnsibleException("ERROR: Ansible IO failure: "+e.getMessage(), e, AnsibleException.AnsibleFailureReason.IOFailure);
     } catch (AnsibleException e) {
             throw e;
     } catch (Exception e) {

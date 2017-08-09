@@ -72,7 +72,7 @@ public class AnsibleModuleWorkflowStep implements StepPlugin, AnsibleDescribable
     try {
         runner = builder.buildAnsibleRunner();  
     } catch (ConfigurationException e) {
-          throw new StepException("Error configuring Ansible runner.", e, AnsibleException.AnsibleFailureReason.ParseArgumentsError);
+          throw new StepException("Error configuring Ansible runner: "+e.getMessage(), e, AnsibleException.AnsibleFailureReason.ParseArgumentsError);
     }
 
     // ansible runner will take care of handling exceptions, here handle only jobs specific stuff
