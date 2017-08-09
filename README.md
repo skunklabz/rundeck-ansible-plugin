@@ -95,6 +95,7 @@ Become password configuration is very similar to ssh password, you can use eithe
 
 ## Requirements ##
 
+- Ansible >= 1.7
 - Ansible executables in `$PATH` of Rundeck user
 - Rundeck user needs to be able to successfully run Ansible commands, that includes access to Ansible's config files and keys - it depends on your setup (whether you installed via .deb or launcher etc.)
   - You can check if everything works with something like this: `su rundeck -s /bin/bash -c "ansible all -m ping"`
