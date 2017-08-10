@@ -478,22 +478,28 @@ public class AnsibleRunner {
     	  }
       }
     } catch (InterruptedException e) {
-    	    proc.destroy();
-            Thread.currentThread().interrupt();
-            throw new AnsibleException("ERROR: Ansible Execution Interrupted.", e, AnsibleException.AnsibleFailureReason.Interrupted);
+        if(proc!=null) {
+          proc.destroy();
+        }
+        Thread.currentThread().interrupt();
+        throw new AnsibleException("ERROR: Ansible Execution Interrupted.", e, AnsibleException.AnsibleFailureReason.Interrupted);
     } catch (IOException e) {
-            throw new AnsibleException("ERROR: Ansible IO failure.", e, AnsibleException.AnsibleFailureReason.IOFailure);
+        throw new AnsibleException("ERROR: Ansible IO failure: "+e.getMessage(), e, AnsibleException.AnsibleFailureReason.IOFailure);
     } catch (AnsibleException e) {
-            throw e;
+        throw e;
     } catch (Exception e) {
-    	    proc.destroy();
-            throw new AnsibleException("ERROR: Ansible execution returned with non zero code.", e, AnsibleException.AnsibleFailureReason.Unknown);
+        if(proc!=null) {
+          proc.destroy();
+        }
+        throw new AnsibleException("ERROR: Ansible execution returned with non zero code.", e, AnsibleException.AnsibleFailureReason.Unknown);
     } finally {
         // Make sure to always cleanup on failure and success
-        proc.getErrorStream().close();
-        proc.getInputStream().close();
-        proc.getOutputStream().close();
-        proc.destroy();
+        if(proc!=null) {
+          proc.getErrorStream().close();
+          proc.getInputStream().close();
+          proc.getOutputStream().close();
+          proc.destroy();
+        }
 
         if (tempFile != null && !tempFile.delete()) {
           tempFile.deleteOnExit();
