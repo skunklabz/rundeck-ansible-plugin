@@ -62,7 +62,7 @@ public interface AnsibleDescribable extends Describable {
     
     public static final String SERVICE_PROVIDER_TYPE = "ansible-service";
 
-    public static final String ANSIBLE_PLAYBOOK_PATH = "ansible-playbook-path";
+    public static final String ANSIBLE_PLAYBOOK_PATH = "ansible-playbook";
     public static final String ANSIBLE_PLAYBOOK_INLINE = "ansible-playbook-inline";
     public static final String ANSIBLE_INVENTORY = "ansible-inventory";
     public static final String ANSIBLE_MODULE = "ansible-module";
