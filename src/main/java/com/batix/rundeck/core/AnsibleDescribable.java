@@ -14,7 +14,7 @@ public interface AnsibleDescribable extends Describable {
     public static enum Executable {
         bash("/bin/bash"),
         sh("/bin/sh");
-    	
+
     	private final String executable;
     	
     	Executable(String executable) {
@@ -32,6 +32,29 @@ public interface AnsibleDescribable extends Describable {
     	    }
     	    return list.toArray(new String[list.size()]);
     	}
+    }
+
+    public static enum WindowsExecutable {
+        cmd("cmd.exe"),
+        powershell("powershell.exe");
+
+        private final String executable;
+
+        WindowsExecutable(String executable) {
+            this.executable = executable;
+        }
+
+        public String getValue() {
+            return executable;
+        }
+
+        public static String[] getValues() {
+            java.util.LinkedList<String> list = new LinkedList<String>();
+            for (WindowsExecutable s : WindowsExecutable.values()) {
+                list.add(s.executable);
+            }
+            return list.toArray(new String[list.size()]);
+        }
     }
 
     public static enum AuthenticationType {
@@ -68,7 +91,9 @@ public interface AnsibleDescribable extends Describable {
     public static final String ANSIBLE_MODULE_ARGS = "ansible-module-args";
     public static final String ANSIBLE_DEBUG = "ansible-debug";
     public static final String ANSIBLE_EXECUTABLE = "ansible-executable";
+    public static final String ANSIBLE_WINDOWS_EXECUTABLE = "ansible-windows-executable";
     public static final String DEFAULT_ANSIBLE_EXECUTABLE = "/bin/sh";
+    public static final String DEFAULT_ANSIBLE_WINDOWS_EXECUTABLE = "powershell.exe";
     public static final String ANSIBLE_GATHER_FACTS = "ansible-gather-facts";
     public static final String ANSIBLE_IGNORE_ERRORS = "ansible-ignore-errors";
     public static final String ANSIBLE_EXTRA_TAG = "ansible-extra-tag";
@@ -138,6 +163,15 @@ public interface AnsibleDescribable extends Describable {
               true,
               null,
               Arrays.asList(Executable.getValues())
+    );
+
+    public static Property WINDOWS_EXECUTABLE_PROP = PropertyUtil.freeSelect(
+            ANSIBLE_WINDOWS_EXECUTABLE,
+            "Windows Executable",
+            "Change the remote shell used to execute the command on Windows Remote Nodes. Should be an absolute path to the executable.",
+            false,
+            null,
+            Arrays.asList(WindowsExecutable.getValues())
     );
 
     public static Property GATHER_FACTS_PROP = PropertyUtil.bool(

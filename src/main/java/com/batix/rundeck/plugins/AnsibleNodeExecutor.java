@@ -32,6 +32,7 @@ public class AnsibleNodeExecutor implements NodeExecutor, AnsibleDescribable {
         builder.title("Ansible Ad-Hoc Node Executor");
         builder.description("Runs Ansible Ad-Hoc commands on the nodes using the shell module.");
         builder.property(EXECUTABLE_PROP);
+        builder.property(WINDOWS_EXECUTABLE_PROP);
         builder.property(SSH_AUTH_TYPE_PROP);
         builder.property(SSH_USER_PROP);
         builder.property(SSH_PASSWORD_STORAGE_PROP);
@@ -44,6 +45,8 @@ public class AnsibleNodeExecutor implements NodeExecutor, AnsibleDescribable {
         builder.property(BECOME_PASSWORD_STORAGE_PROP);
         builder.mapping(ANSIBLE_EXECUTABLE,PROJ_PROP_PREFIX + ANSIBLE_EXECUTABLE);
         builder.frameworkMapping(ANSIBLE_EXECUTABLE,FWK_PROP_PREFIX + ANSIBLE_EXECUTABLE);
+        builder.mapping(ANSIBLE_WINDOWS_EXECUTABLE,PROJ_PROP_PREFIX + ANSIBLE_WINDOWS_EXECUTABLE);
+        builder.frameworkMapping(ANSIBLE_WINDOWS_EXECUTABLE,FWK_PROP_PREFIX + ANSIBLE_WINDOWS_EXECUTABLE);
         builder.mapping(ANSIBLE_SSH_AUTH_TYPE,PROJ_PROP_PREFIX + ANSIBLE_SSH_AUTH_TYPE);
         builder.frameworkMapping(ANSIBLE_SSH_AUTH_TYPE,FWK_PROP_PREFIX + ANSIBLE_SSH_AUTH_TYPE);
         builder.mapping(ANSIBLE_SSH_USER,PROJ_PROP_PREFIX + ANSIBLE_SSH_USER);
@@ -87,8 +90,19 @@ public class AnsibleNodeExecutor implements NodeExecutor, AnsibleDescribable {
                           null
                         );
 
+    //windows executable
+    String windowsExecutable = PropertyResolver.resolveProperty(
+                                      AnsibleDescribable.ANSIBLE_WINDOWS_EXECUTABLE,
+                                      AnsibleDescribable.DEFAULT_ANSIBLE_WINDOWS_EXECUTABLE,
+                                      context.getFrameworkProject(),
+                                      context.getFramework(),
+                                      node,
+                                      null
+                              );
+
+
     if(windows) {
-        //if is a windows host, not add the executable
+        cmdArgs.append("executable=").append(windowsExecutable);
         for (String cmd : command) {
             cmdArgs.append(" ").append(cmd).append("");
         }
@@ -97,7 +111,6 @@ public class AnsibleNodeExecutor implements NodeExecutor, AnsibleDescribable {
         for (String cmd : command) {
             cmdArgs.append(" '").append(cmd).append("'");
         }
-
     }
 
 
