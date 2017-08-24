@@ -93,6 +93,8 @@ public class AnsibleRunner {
   private int result;
   private Map<String, String> options = new HashMap<>();
 
+  protected String configFile;
+
   private Listener listener;
 
   private AnsibleRunner(AnsibleCommand type) {
@@ -221,6 +223,13 @@ public class AnsibleRunner {
   public AnsibleRunner becomePassword(String pass) {
     if (pass != null && pass.length() > 0) {
       becomePassword = pass;
+    }
+    return this;
+  }
+
+  public AnsibleRunner configFile(String path) {
+    if (path != null && path.length() > 0) {
+      configFile = path;
     }
     return this;
   }
@@ -423,7 +432,15 @@ public class AnsibleRunner {
     Process proc = null;
 
     Map<String, String> processEnvironment = processBuilder.environment();
-    
+
+    if (configFile != null && configFile.length() > 0) {
+      if (debug) {
+        System.out.println(" ANSIBLE_CONFIG: "+configFile);
+      }
+
+      processEnvironment.put("ANSIBLE_CONFIG", configFile);
+    }
+
     for (String optionName : this.options.keySet()) {
         processEnvironment.put(optionName, this.options.get(optionName));
     }

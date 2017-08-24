@@ -690,6 +690,25 @@ public class AnsibleRunnerBuilder {
         }
         return limit;
     }
+
+    public String getConfigFile() {
+
+        final String configFile;
+        configFile = PropertyResolver.resolveProperty(
+                AnsibleDescribable.ANSIBLE_CONFIG_FILE_PATH,
+                null,
+                getFrameworkProject(),
+                getFramework(),
+                getNode(),
+                getjobConf()
+        );
+
+        if (null != configFile && configFile.contains("${")) {
+            return DataContextUtils.replaceDataReferences(configFile, getContext().getDataContext());
+        }
+        return configFile;
+    }
+
     
     public AnsibleRunner buildAnsibleRunner() throws ConfigurationException{
 
@@ -786,6 +805,12 @@ public class AnsibleRunnerBuilder {
         String become_password = getBecomePassword();
         if (become_password != null) {
             runner = runner.becomePassword(become_password);
+        }
+
+
+        String configFile = getConfigFile();
+        if (configFile != null) {
+            runner = runner.configFile(configFile);
         }
 
         return runner;

@@ -33,6 +33,7 @@ public class AnsibleNodeExecutor implements NodeExecutor, AnsibleDescribable {
         builder.description("Runs Ansible Ad-Hoc commands on the nodes using the shell module.");
         builder.property(EXECUTABLE_PROP);
         builder.property(WINDOWS_EXECUTABLE_PROP);
+        builder.property(CONFIG_FILE_PATH);
         builder.property(SSH_AUTH_TYPE_PROP);
         builder.property(SSH_USER_PROP);
         builder.property(SSH_PASSWORD_STORAGE_PROP);
@@ -47,6 +48,8 @@ public class AnsibleNodeExecutor implements NodeExecutor, AnsibleDescribable {
         builder.frameworkMapping(ANSIBLE_EXECUTABLE,FWK_PROP_PREFIX + ANSIBLE_EXECUTABLE);
         builder.mapping(ANSIBLE_WINDOWS_EXECUTABLE,PROJ_PROP_PREFIX + ANSIBLE_WINDOWS_EXECUTABLE);
         builder.frameworkMapping(ANSIBLE_WINDOWS_EXECUTABLE,FWK_PROP_PREFIX + ANSIBLE_WINDOWS_EXECUTABLE);
+        builder.mapping(ANSIBLE_CONFIG_FILE_PATH,PROJ_PROP_PREFIX + ANSIBLE_CONFIG_FILE_PATH);
+        builder.frameworkMapping(ANSIBLE_CONFIG_FILE_PATH,FWK_PROP_PREFIX + ANSIBLE_CONFIG_FILE_PATH);
         builder.mapping(ANSIBLE_SSH_AUTH_TYPE,PROJ_PROP_PREFIX + ANSIBLE_SSH_AUTH_TYPE);
         builder.frameworkMapping(ANSIBLE_SSH_AUTH_TYPE,FWK_PROP_PREFIX + ANSIBLE_SSH_AUTH_TYPE);
         builder.mapping(ANSIBLE_SSH_USER,PROJ_PROP_PREFIX + ANSIBLE_SSH_USER);
@@ -132,6 +135,7 @@ public class AnsibleNodeExecutor implements NodeExecutor, AnsibleDescribable {
     } else {
       jobConf.put(AnsibleDescribable.ANSIBLE_DEBUG,"False");
     }
+
 
     AnsibleRunnerBuilder builder = new AnsibleRunnerBuilder(node, context, context.getFramework(), jobConf);
 
