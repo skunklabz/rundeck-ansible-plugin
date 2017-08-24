@@ -127,6 +127,9 @@ public interface AnsibleDescribable extends Describable {
     public static final String ANSIBLE_BECOME_PASSWORD_STORAGE_PATH = "ansible-become-password-storage-path";
     public static final String DEFAULT_ANSIBLE_BECOME_PASSWORD_OPTION = "ansible-become-password";
 
+
+    public static final String ANSIBLE_CONFIG_FILE_PATH = "ansible-config-file-path";
+
     public static final String PROJ_PROP_PREFIX = "project.";
     public static final String FWK_PROP_PREFIX = "framework.";
 
@@ -395,6 +398,13 @@ public interface AnsibleDescribable extends Describable {
             .values(Arrays.asList(BecomeMethodType.getValues()))
             .renderingOption(StringRenderingConstants.GROUPING,"SECONDARY")
             .renderingOption(StringRenderingConstants.GROUP_NAME,"Privilege Escalation")
+            .build();
+
+    static final Property CONFIG_FILE_PATH = PropertyBuilder.builder()
+            .string(ANSIBLE_CONFIG_FILE_PATH)
+            .required(false)
+            .title("Ansible config file path")
+            .description("Set ansible config file path.")
             .build();
 
 }
