@@ -169,7 +169,7 @@ public interface AnsibleDescribable extends Describable {
     );
 
     public static Property INVENTORY_PROP = PropertyUtil.string(ANSIBLE_INVENTORY, "ansible inventory File path",
-            "File Path to the ansible inventory to use", false, null);
+            "File Path to the ansible inventory to use, It can be blank if \"Ansible config file path\" is set  ", false, null);
 
     public static Property EXECUTABLE_PROP = PropertyUtil.freeSelect(
               ANSIBLE_EXECUTABLE,
