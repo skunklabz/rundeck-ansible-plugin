@@ -239,10 +239,14 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
           JsonObject root = json.getAsJsonObject();
 
           String hostname = root.get("inventory_hostname").getAsString();
-          if (root.has("ansible_host")) {
-            hostname = root.get("ansible_host").getAsString();
-          } else if (root.has("ansible_ssh_host")) { // deprecated variable
-            hostname = root.get("ansible_ssh_host").getAsString();
+          try {
+            if (root.has("ansible_host")) {
+              hostname = root.get("ansible_host").getAsString();
+            } else if (root.has("ansible_ssh_host")) { // deprecated variable
+              hostname = root.get("ansible_ssh_host").getAsString();
+            }
+          }catch(Exception ex){
+            System.out.println("[warn] Problem getting the ansible_host attribute from node " + hostname);
           }
 
           String nodename = root.get("inventory_hostname").getAsString();
@@ -290,12 +294,12 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
           // ansible_system     = Linux   = osFamily in Rundeck
           // ansible_os_family  = Debian  = osName in Rundeck
 
-          if (root.has("ansible_system")) {
-            node.setOsFamily(root.get("ansible_system").getAsString());
+          if (root.has("ansible_os_family")) {
+            node.setOsFamily(root.get("ansible_os_family").getAsString());
           }
 
-          if (root.has("ansible_os_family")) {
-            node.setOsName(root.get("ansible_os_family").getAsString());
+          if (root.has("ansible_os_name")) {
+            node.setOsName(root.get("ansible_os_name").getAsString());
           }
 
           if (root.has("ansible_architecture")) {
