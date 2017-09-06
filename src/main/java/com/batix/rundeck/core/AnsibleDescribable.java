@@ -84,7 +84,6 @@ public interface AnsibleDescribable extends Describable {
     }
     
     public static final String SERVICE_PROVIDER_TYPE = "ansible-service";
-
     public static final String ANSIBLE_PLAYBOOK_PATH = "ansible-playbook";
     public static final String ANSIBLE_PLAYBOOK_INLINE = "ansible-playbook-inline";
     public static final String ANSIBLE_INVENTORY = "ansible-inventory";
@@ -99,6 +98,7 @@ public interface AnsibleDescribable extends Describable {
     public static final String ANSIBLE_IGNORE_ERRORS = "ansible-ignore-errors";
     public static final String ANSIBLE_EXTRA_TAG = "ansible-extra-tag";
     public static final String ANSIBLE_LIMIT = "ansible-limit";
+    public static final String ANSIBLE_DISABLE_LIMIT ="ansible-disable-limit";
     public static final String ANSIBLE_IGNORE_TAGS = "ansible-ignore-tags-prefix";
     public static final String ANSIBLE_EXTRA_VARS = "ansible-extra-vars";
     public static final String ANSIBLE_EXTRA_PARAM = "ansible-extra-param";
@@ -208,6 +208,14 @@ public interface AnsibleDescribable extends Describable {
               "Select only specified hosts/groups from the Ansible inventory. See http://docs.ansible.com/ansible/intro_patterns.html for syntax help.",
               false,
               ""
+    );
+        
+    public static Property DISABLE_LIMIT_PROP = PropertyUtil.bool(
+    		 ANSIBLE_DISABLE_LIMIT,
+    		 "Disable Limit",
+    		 "Disables passing the --limit parameter from Rundeck into Ansible.  If you want to select hosts, you must pass the --limit in the extra arguments field.",
+    		 true,
+    		 "true"
     );
 
     public static Property IGNORE_TAGS_PREFIX_PROP = PropertyUtil.string(

@@ -688,6 +688,20 @@ public class AnsibleRunnerBuilder {
 
     public String getLimit() {
         final String limit;
+        
+        // Return Null if Disabled
+        if("true".equals(PropertyResolver.resolveProperty(
+        				AnsibleDescribable.ANSIBLE_DISABLE_LIMIT,
+        				null,
+    				    getFrameworkProject(),
+                        getFramework(),
+                        getNode(),
+                        getjobConf()))){
+        	
+        	return null;
+        }
+                 
+        // Get Limit from Rundeck
         limit = PropertyResolver.resolveProperty(
                      AnsibleDescribable.ANSIBLE_LIMIT,
                      null,
