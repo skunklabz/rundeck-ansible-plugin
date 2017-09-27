@@ -59,6 +59,7 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
   protected String becomeMethod;
   protected String becomeUser;
   protected String becomePassword;
+  protected String configFile;
 
   public AnsibleResourceModelSource(final Framework framework) {
       this.framework = framework;
@@ -119,6 +120,10 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
     becomeMethod = (String) resolveProperty(AnsibleDescribable.ANSIBLE_BECOME_METHOD,null,configuration,executionDataContext);
     becomeUser = (String) resolveProperty(AnsibleDescribable.ANSIBLE_BECOME_USER,null,configuration,executionDataContext);
     becomePassword = (String)  resolveProperty(AnsibleDescribable.ANSIBLE_BECOME_PASSWORD,null,configuration,executionDataContext);
+
+
+    configFile = (String)  resolveProperty(AnsibleDescribable.ANSIBLE_CONFIG_FILE_PATH,null,configuration,executionDataContext);
+
   }
 
   public AnsibleRunner buildAnsibleRunner() throws ResourceModelSourceException{
@@ -182,6 +187,10 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
 	  if (becomePassword != null) {
 		  runner = runner.becomePassword(becomePassword);
 	  }
+
+      if (configFile != null) {
+        runner = runner.configFile(configFile);
+      }
 
 	  return runner;
   }

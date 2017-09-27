@@ -33,6 +33,7 @@ public class AnsibleFileCopier implements FileCopier, AnsibleDescribable {
         builder.name(SERVICE_PROVIDER_NAME);
         builder.title("Ansible File Copier");
         builder.description("Sends a file to a node via the copy module.");
+        builder.property(CONFIG_FILE_PATH);
         builder.property(SSH_AUTH_TYPE_PROP);
         builder.property(SSH_USER_PROP);
         builder.property(SSH_PASSWORD_STORAGE_PROP);
@@ -43,6 +44,8 @@ public class AnsibleFileCopier implements FileCopier, AnsibleDescribable {
         builder.property(BECOME_AUTH_TYPE_PROP);
         builder.property(BECOME_USER_PROP);
         builder.property(BECOME_PASSWORD_STORAGE_PROP);
+        builder.mapping(ANSIBLE_CONFIG_FILE_PATH,PROJ_PROP_PREFIX + ANSIBLE_CONFIG_FILE_PATH);
+        builder.frameworkMapping(ANSIBLE_CONFIG_FILE_PATH,FWK_PROP_PREFIX + ANSIBLE_CONFIG_FILE_PATH);
         DESC=builder.build();
   }
 
