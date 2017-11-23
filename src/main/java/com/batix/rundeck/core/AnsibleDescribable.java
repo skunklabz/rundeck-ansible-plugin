@@ -16,11 +16,11 @@ public interface AnsibleDescribable extends Describable {
         sh("/bin/sh");
 
     	private final String executable;
-    	
+
     	Executable(String executable) {
     		this.executable = executable;
     	}
-    	
+
     	public String getValue() {
 			return executable;
 		}
@@ -60,7 +60,7 @@ public interface AnsibleDescribable extends Describable {
     public static enum AuthenticationType {
         privateKey,
         password;
-    	
+
     	public static String[] getValues() {
     	    java.util.LinkedList<String> list = new LinkedList<String>();
     	    for (AuthenticationType s : AuthenticationType.values()) {
@@ -73,7 +73,7 @@ public interface AnsibleDescribable extends Describable {
     public static enum BecomeMethodType {
         sudo,
         su;
-    	
+
     	public static String[] getValues() {
     	    java.util.LinkedList<String> list = new LinkedList<String>();
     	    for (BecomeMethodType s : BecomeMethodType.values()) {
@@ -82,7 +82,7 @@ public interface AnsibleDescribable extends Describable {
     	    return list.toArray(new String[list.size()]);
     	}
     }
-    
+
     public static final String SERVICE_PROVIDER_TYPE = "ansible-service";
     public static final String ANSIBLE_PLAYBOOK_PATH = "ansible-playbook";
     public static final String ANSIBLE_PLAYBOOK_INLINE = "ansible-playbook-inline";
@@ -129,6 +129,7 @@ public interface AnsibleDescribable extends Describable {
 
 
     public static final String ANSIBLE_CONFIG_FILE_PATH = "ansible-config-file-path";
+    public static final String ANSIBLE_BASE_DIR_PATH = "ansible-base-dir-path";
 
     public static final String PROJ_PROP_PREFIX = "project.";
     public static final String FWK_PROP_PREFIX = "framework.";
@@ -140,7 +141,7 @@ public interface AnsibleDescribable extends Describable {
               true,
               null
     );
-    
+
     public static Property PLAYBOOK_INLINE_PROP = PropertyBuilder.builder()
     		.string(ANSIBLE_PLAYBOOK_INLINE)
     		.required(false)
@@ -151,7 +152,7 @@ public interface AnsibleDescribable extends Describable {
         .renderingOption(StringRenderingConstants.CODE_SYNTAX_SELECTABLE, false)
     		.build();
 
- 
+
     public static Property MODULE_PROP = PropertyUtil.string(
               ANSIBLE_MODULE,
               "Module",
@@ -212,7 +213,7 @@ public interface AnsibleDescribable extends Describable {
               false,
               ""
     );
-        
+
     public static Property DISABLE_LIMIT_PROP = PropertyUtil.bool(
     		 ANSIBLE_DISABLE_LIMIT,
     		 "Disable Limit",
@@ -236,7 +237,7 @@ public interface AnsibleDescribable extends Describable {
             false,
             ""
     );
-    
+
     static final Property EXTRA_VARS_PROP = PropertyBuilder.builder()
             .string(ANSIBLE_EXTRA_VARS)
             .required(false)
@@ -246,7 +247,7 @@ public interface AnsibleDescribable extends Describable {
             .renderingOption(StringRenderingConstants.CODE_SYNTAX_MODE, "yaml")
             .renderingOption(StringRenderingConstants.CODE_SYNTAX_SELECTABLE, true)
             .build();
-    
+
     public static Property EXTRA_ATTRS_PROP = PropertyUtil.string(
             ANSIBLE_EXTRA_PARAM,
             "Extra Ansible arguments",
@@ -254,7 +255,7 @@ public interface AnsibleDescribable extends Describable {
             false,
             ""
       );
-    
+
     static final Property VAULT_KEY_FILE_PROP = PropertyUtil.string(ANSIBLE_VAULT_PATH, "Vault Key File path",
             "File Path to the ansible vault Key to use",
             false, null);
@@ -280,7 +281,7 @@ public interface AnsibleDescribable extends Describable {
             .renderingOption(StringRenderingConstants.GROUP_NAME,"SSH Connection")
             .build();
 
-    
+
     static final Property SSH_KEY_STORAGE_PROP = PropertyBuilder.builder()
             .string(ANSIBLE_SSH_KEYPATH_STORAGE_PATH)
             .required(false)
@@ -405,6 +406,13 @@ public interface AnsibleDescribable extends Describable {
             .required(false)
             .title("Ansible config file path")
             .description("Set ansible config file path.")
+            .build();
+
+    static final Property BASE_DIR_PATH = PropertyBuilder.builder()
+            .string(ANSIBLE_BASE_DIR_PATH)
+            .required(false)
+            .title("Ansible base directory path")
+            .description("Set ansible base directory path.")
             .build();
 
 }

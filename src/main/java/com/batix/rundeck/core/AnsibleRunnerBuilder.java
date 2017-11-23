@@ -183,7 +183,7 @@ public class AnsibleRunnerBuilder {
     }
 
     public String getSshPassword()  throws ConfigurationException{
-        
+
         //look for option values first
         //typically jobs use secure options to dynamically setup the ssh password
         final String passwordOption = PropertyResolver.resolveProperty(
@@ -195,7 +195,7 @@ public class AnsibleRunnerBuilder {
                     getjobConf()
                     );
         String sshPassword = PropertyResolver.evaluateSecureOption(passwordOption, getContext());
-        
+
         if(null!=sshPassword){
             // is true if there is an ssh option defined in the private data context
             return sshPassword;
@@ -244,7 +244,7 @@ public class AnsibleRunnerBuilder {
         final String stimeout = PropertyResolver.resolveProperty(
         		    AnsibleDescribable.ANSIBLE_SSH_TIMEOUT,
                     null,
-                    getFrameworkProject(), 
+                    getFrameworkProject(),
                     getFramework(),
                     getNode(),
                     getjobConf()
@@ -303,7 +303,7 @@ public class AnsibleRunnerBuilder {
                    getFramework(),getNode(),
                    getjobConf()
                    );
-        
+
         if (null != user && user.contains("${")) {
             return DataContextUtils.replaceDataReferences(user, getContext().getDataContext());
         }
@@ -337,13 +337,13 @@ public class AnsibleRunnerBuilder {
     	            getNode(),
     	            getjobConf()
     	            );
-    	
+
     	if (null != extraParams && extraParams.contains("${")) {
     	     return DataContextUtils.replaceDataReferences(extraParams, getContext().getDataContext());
     	}
     	return extraParams;
     }
-    
+
     public BecomeMethodType getBecomeMethod() {
         String becomeMethod = PropertyResolver.resolveProperty(
                    AnsibleDescribable.ANSIBLE_BECOME_METHOD,
@@ -366,7 +366,7 @@ public class AnsibleRunnerBuilder {
     }
 
 
-    public String getBecomePasswordStoragePath() { 
+    public String getBecomePasswordStoragePath() {
         String path = PropertyResolver.resolveProperty(
         		AnsibleDescribable.ANSIBLE_BECOME_PASSWORD_STORAGE_PATH,
                 null,
@@ -391,7 +391,7 @@ public class AnsibleRunnerBuilder {
         final String passwordOption = PropertyResolver.resolveProperty(
                     AnsibleDescribable.ANSIBLE_BECOME_PASSWORD_OPTION,
                     AnsibleDescribable.DEFAULT_ANSIBLE_BECOME_PASSWORD_OPTION,
-                    getFrameworkProject(), 
+                    getFrameworkProject(),
                     getFramework(),
                     getNode(),
                     getjobConf()
@@ -401,7 +401,7 @@ public class AnsibleRunnerBuilder {
     }
 
     public String getBecomePassword()  throws ConfigurationException{
-        
+
         //look for option values first
         //typically jobs use secure options to dynamically setup the become password
         String passwordOption = PropertyResolver.resolveProperty(
@@ -413,7 +413,7 @@ public class AnsibleRunnerBuilder {
                     getjobConf()
                     );
         String becomePassword = PropertyResolver.evaluateSecureOption(passwordOption, getContext());
-        
+
         if(null!=becomePassword){
             // is true if there is a become option defined in the private data context
             return becomePassword;
@@ -530,7 +530,7 @@ public class AnsibleRunnerBuilder {
         }
         return playbook;
     }
-    
+
     public String getPlaybookInline() {
     	 	String playbook = null;
          if ( getjobConf().containsKey(AnsibleDescribable.ANSIBLE_PLAYBOOK_INLINE) ) {
@@ -548,7 +548,7 @@ public class AnsibleRunnerBuilder {
         if ( getjobConf().containsKey(AnsibleDescribable.ANSIBLE_MODULE) ) {
         	module = (String) jobConf.get(AnsibleDescribable.ANSIBLE_MODULE);
         }
-        
+
         if (null != module && module.contains("${")) {
             return DataContextUtils.replaceDataReferences(module, getContext().getDataContext());
         }
@@ -688,7 +688,7 @@ public class AnsibleRunnerBuilder {
 
     public String getLimit() {
         final String limit;
-        
+
         // Return Null if Disabled
         if("true".equals(PropertyResolver.resolveProperty(
         				AnsibleDescribable.ANSIBLE_DISABLE_LIMIT,
@@ -697,10 +697,10 @@ public class AnsibleRunnerBuilder {
                         getFramework(),
                         getNode(),
                         getjobConf()))){
-        	
+
         	return null;
         }
-                 
+
         // Get Limit from Rundeck
         limit = PropertyResolver.resolveProperty(
                      AnsibleDescribable.ANSIBLE_LIMIT,
@@ -735,14 +735,32 @@ public class AnsibleRunnerBuilder {
         return configFile;
     }
 
-    
+    public String getBaseDir() {
+
+        final String baseDir;
+        configFile = PropertyResolver.resolveProperty(
+                AnsibleDescribable.ANSIBLE_BASE_DIR_PATH,
+                null,
+                getFrameworkProject(),
+                getFramework(),
+                getNode(),
+                getjobConf()
+        );
+
+        if (null != baseDir && baseDir.contains("${")) {
+            return DataContextUtils.replaceDataReferences(baseDir, getContext().getDataContext());
+        }
+        return baseDir;
+    }
+
+
     public AnsibleRunner buildAnsibleRunner() throws ConfigurationException{
 
         AnsibleRunner runner = null;
-        
+
         String playbook;
         String module;
-        
+
         if ((playbook = getPlaybookPath()) != null) {
             runner = AnsibleRunner.playbookPath(playbook);
         } else if ((playbook = getPlaybookInline()) != null) {
@@ -750,7 +768,7 @@ public class AnsibleRunnerBuilder {
         } else if ((module  = getModule()) != null) {
             runner = AnsibleRunner.adHoc(module, getModuleArgs());
         } else {
-            throw new ConfigurationException("Missing module or playbook job arguments");          
+            throw new ConfigurationException("Missing module or playbook job arguments");
         }
 
         final AuthenticationType authType = getSshAuthenticationType();
@@ -765,7 +783,7 @@ public class AnsibleRunnerBuilder {
                 runner = runner.sshUsePassword(Boolean.TRUE).sshPass(password);
             }
         }
-        
+
         // set rundeck options as environment variables
         Map<String,String> options = context.getDataContext().get("option");
         if (options != null) {
@@ -781,7 +799,7 @@ public class AnsibleRunnerBuilder {
         if (limit != null) {
             runner = runner.limit(limit);
         }
-        
+
         Boolean debug = getDebug();
         if (debug != null) {
             if (debug == Boolean.TRUE) {
@@ -800,7 +818,7 @@ public class AnsibleRunnerBuilder {
         if (extraVars != null) {
             runner = runner.extraVars(extraVars);
         }
-        
+
         String user = getSshUser();
         if (user != null) {
             runner = runner.sshUser(user);
@@ -840,6 +858,11 @@ public class AnsibleRunnerBuilder {
         String configFile = getConfigFile();
         if (configFile != null) {
             runner = runner.configFile(configFile);
+        }
+
+        String baseDir = getBaseDir();
+        if (baseDir != null) {
+            runner = runner.baseDirectory(baseDir);
         }
 
         return runner;
