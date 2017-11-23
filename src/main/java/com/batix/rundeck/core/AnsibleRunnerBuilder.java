@@ -738,7 +738,7 @@ public class AnsibleRunnerBuilder {
     public String getBaseDir() {
 
         final String baseDir;
-        configFile = PropertyResolver.resolveProperty(
+        baseDir = PropertyResolver.resolveProperty(
                 AnsibleDescribable.ANSIBLE_BASE_DIR_PATH,
                 null,
                 getFrameworkProject(),
