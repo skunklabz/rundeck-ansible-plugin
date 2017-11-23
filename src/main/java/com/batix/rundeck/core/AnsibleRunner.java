@@ -296,9 +296,9 @@ public class AnsibleRunner {
    * Specify in which directory Ansible is run.
    * A temporary directory will be used if none is specified.
    */
-  public AnsibleRunner baseDirectory(Path dir) {
+  public AnsibleRunner baseDirectory(String dir) {
     if (dir != null) {
-      this.baseDirectory = dir;
+      this.baseDirectory = Paths.get(dir);
     }
     return this;
   }

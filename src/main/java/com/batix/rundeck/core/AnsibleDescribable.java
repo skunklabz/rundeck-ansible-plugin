@@ -408,7 +408,7 @@ public interface AnsibleDescribable extends Describable {
             .description("Set ansible config file path.")
             .build();
 
-    static final Property BASE_DIR_PATH = PropertyBuilder.builder()
+    static final Property BASE_DIR_PROP = PropertyBuilder.builder()
             .string(ANSIBLE_BASE_DIR_PATH)
             .required(false)
             .title("Ansible base directory path")
