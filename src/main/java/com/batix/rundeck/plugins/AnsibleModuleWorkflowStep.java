@@ -19,7 +19,7 @@ import java.util.Map;
 public class AnsibleModuleWorkflowStep implements StepPlugin, AnsibleDescribable {
 
     public static final String SERVICE_PROVIDER_NAME = "com.batix.rundeck.plugins.AnsibleModuleWorkflowStep";
-	
+
     public static Description DESC = null;
 
     static {
@@ -28,13 +28,14 @@ public class AnsibleModuleWorkflowStep implements StepPlugin, AnsibleDescribable
         builder.title("Ansible Module");
         builder.description("Runs an Ansible Module on selected nodes.");
 
+        builder.property(BASE_DIR_PROP);
         builder.property(MODULE_PROP);
         builder.property(MODULE_ARGS_PROP);
         builder.property(SSH_AUTH_TYPE_PROP);
         builder.property(SSH_USER_PROP);
         builder.property(SSH_PASSWORD_STORAGE_PROP);
-        builder.property(SSH_KEY_FILE_PROP); 
-        builder.property(SSH_KEY_STORAGE_PROP); 
+        builder.property(SSH_KEY_FILE_PROP);
+        builder.property(SSH_KEY_STORAGE_PROP);
         builder.property(SSH_TIMEOUT_PROP);
         builder.property(BECOME_PROP);
         builder.property(BECOME_AUTH_TYPE_PROP);
@@ -59,7 +60,7 @@ public class AnsibleModuleWorkflowStep implements StepPlugin, AnsibleDescribable
     if (limit != "") {
         configuration.put(AnsibleDescribable.ANSIBLE_LIMIT,limit);
     }
-    
+
     // set log level
     if (context.getDataContext().get("job").get("loglevel").equals("DEBUG")) {
         configuration.put(AnsibleDescribable.ANSIBLE_DEBUG,"True");
@@ -70,7 +71,7 @@ public class AnsibleModuleWorkflowStep implements StepPlugin, AnsibleDescribable
     AnsibleRunnerBuilder builder = new AnsibleRunnerBuilder(context.getExecutionContext(),context.getFramework(),configuration);
 
     try {
-        runner = builder.buildAnsibleRunner();  
+        runner = builder.buildAnsibleRunner();
     } catch (ConfigurationException e) {
           throw new StepException("Error configuring Ansible runner: "+e.getMessage(), e, AnsibleException.AnsibleFailureReason.ParseArgumentsError);
     }
