@@ -58,7 +58,7 @@ Note that Node attributes are only evaluated for Node Executor jobs, Workflow Jo
 
 The following configuration attributes can be set on the Node, or in the project.properties or framework.properties. To add them to project.properties, prefix them with "project." and for framework.properties prefix them with "framework.":
 
-* `ansible-inventory` - Specifies the ansible inventory to use, can defined a global inventory file at the project level without requiring setting the same variable for each job. (default /etc/ansible/hosts)
+* `ansible-inventory` - Specifies the ansible inventory to use, can define a global inventory file at the project level without requiring setting the same variable for each job. (default /etc/ansible/hosts)
 * `ansible-executable` - The executable to use for node Node Executor. (default /bin/sh)
 * `ansible-limit` - Global groups limits can be set at the project level to filter hosts/groups from the Ansible inventory. See http://docs.ansible.com/ansible/intro_patterns.html for syntax help.
 * `ansible-vault-path` - Default vault file path to use for Playbook Jobs.
@@ -86,7 +86,7 @@ Password authentication can be performed in one of two ways:
 2. Use the Rundeck [Key Storage Facility][2] to store a password, and use the path to it as the `ansible-ssh-password-storage-path`
 Note that the first takes precedence in evaluation over the second.
 
-Private Key authentication can be performed by using a full path to the shh private key (make sure the file is owned by rundeck and access permissions are set to 0600) or using [Key Storage Facility][2] to store a private key.
+Private Key authentication can be performed by using a full path to the ssh private key (make sure the file is owned by rundeck and access permissions are set to 0600) or using [Key Storage Facility][2] to store a private key.
 
 Become password configuration is very similar to ssh password, you can use either [Secure Authentication Option][1], the default option name should be "ansible-become-password" or use [Key Storage Facility][2] to store a password, and use the path to it as the `ansible-become-password-storage-path`. Also for become password just like ssh password the first takes precedence in evaluation over the second.  
 
