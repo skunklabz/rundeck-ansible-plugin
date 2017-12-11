@@ -6,6 +6,7 @@
 package com.batix.rundeck.core;
 
 import com.dtolabs.rundeck.core.common.INodeEntry;
+import com.dtolabs.rundeck.core.common.INodeSet;
 import com.batix.rundeck.core.AnsibleDescribable.AuthenticationType;
 import com.batix.rundeck.core.AnsibleDescribable.BecomeMethodType;
 import com.dtolabs.rundeck.core.common.Framework;
@@ -15,13 +16,17 @@ import com.dtolabs.rundeck.core.plugins.configuration.ConfigurationException;
 import com.dtolabs.rundeck.core.storage.ResourceMeta;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import org.rundeck.storage.api.Path;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 import org.rundeck.storage.api.PathUtil;
@@ -33,22 +38,25 @@ public class AnsibleRunnerBuilder {
     private Framework framework;
     private String frameworkProject;
     private Map<String, Object> jobConf;
-    private INodeEntry node;
+    private Collection<INodeEntry> nodes;
+    private Collection<File> tempFiles;
 
     AnsibleRunnerBuilder(final ExecutionContext context, final Framework framework) {
         this.context = context;
         this.framework = framework;
         this.frameworkProject = context.getFrameworkProject();
         this.jobConf = new HashMap<String, Object>();
-        this.node = null;
+        this.nodes = Collections.emptySet();
+        this.tempFiles = new LinkedList<>();
     }
 
-    public AnsibleRunnerBuilder(final ExecutionContext context, final Framework framework, final Map<String, Object> configuration) {
+    public AnsibleRunnerBuilder(final ExecutionContext context, final Framework framework, INodeSet nodes, final Map<String, Object> configuration) {
         this.context = context;
         this.framework = framework;
         this.frameworkProject = context.getFrameworkProject();
         this.jobConf = configuration;
-        this.node = null;
+        this.nodes = nodes.getNodes();
+        this.tempFiles = new LinkedList<>();
     }
 
     public AnsibleRunnerBuilder(final INodeEntry node,final ExecutionContext context, final Framework framework, final Map<String, Object> configuration) {
@@ -56,7 +64,8 @@ public class AnsibleRunnerBuilder {
         this.framework = framework;
         this.frameworkProject = context.getFrameworkProject();
         this.jobConf = configuration;
-        this.node = node;
+        this.nodes = Collections.singleton(node);
+        this.tempFiles = new LinkedList<>();
     }
 
     private byte[] loadStoragePathData(final String passwordStoragePath) throws IOException {
@@ -669,8 +678,31 @@ public class AnsibleRunnerBuilder {
         return extraVars;
     }
 
-    public String getInventory() {
-        final String inventory;
+    public Boolean generateInventory() {
+        Boolean generateInventory = null;
+        String sgenerateInventory = PropertyResolver.resolveProperty(
+                  AnsibleDescribable.ANSIBLE_GENERATE_INVENTORY,
+                  null,
+                  getFrameworkProject(),
+                  getFramework(),
+                  getNode(),
+                  getjobConf()
+                  );
+
+        if (null != sgenerateInventory) {
+        	generateInventory = Boolean.parseBoolean(sgenerateInventory);
+        }
+        return generateInventory;
+    }
+
+    public String getInventory() throws ConfigurationException {
+        String inventory;
+        if (generateInventory()) {
+            File tempInventory = new AnsibleInventoryBuilder(this.nodes).buildInventory();
+            tempFiles.add(tempInventory);
+            inventory = tempInventory.getAbsolutePath();
+            return inventory;
+        }
         inventory = PropertyResolver.resolveProperty(
                      AnsibleDescribable.ANSIBLE_INVENTORY,
                      null,
@@ -683,6 +715,7 @@ public class AnsibleRunnerBuilder {
         if (null != inventory && inventory.contains("${")) {
             return DataContextUtils.replaceDataReferences(inventory, getContext().getDataContext());
         }
+
         return inventory;
     }
 
@@ -854,7 +887,7 @@ public class AnsibleRunnerBuilder {
     }
 
     public INodeEntry getNode() {
-        return node;
+        return nodes.size() == 1 ? nodes.iterator().next() : null;
     }
 
     public String getFrameworkProject() {
@@ -863,5 +896,14 @@ public class AnsibleRunnerBuilder {
 
     public Map<String,Object> getjobConf() {
         return jobConf;
+    }
+
+    public void cleanupTempFiles() {
+        for (File temp : tempFiles) {
+            if (!getDebug()) {
+                temp.delete();
+            }
+        }
+        tempFiles.clear();
     }
 }

@@ -34,6 +34,7 @@ public class AnsibleNodeExecutor implements NodeExecutor, AnsibleDescribable {
         builder.property(EXECUTABLE_PROP);
         builder.property(WINDOWS_EXECUTABLE_PROP);
         builder.property(CONFIG_FILE_PATH);
+        builder.property(GENERATE_INVENTORY_PROP);
         builder.property(SSH_AUTH_TYPE_PROP);
         builder.property(SSH_USER_PROP);
         builder.property(SSH_PASSWORD_STORAGE_PROP);
@@ -50,6 +51,8 @@ public class AnsibleNodeExecutor implements NodeExecutor, AnsibleDescribable {
         builder.frameworkMapping(ANSIBLE_WINDOWS_EXECUTABLE,FWK_PROP_PREFIX + ANSIBLE_WINDOWS_EXECUTABLE);
         builder.mapping(ANSIBLE_CONFIG_FILE_PATH,PROJ_PROP_PREFIX + ANSIBLE_CONFIG_FILE_PATH);
         builder.frameworkMapping(ANSIBLE_CONFIG_FILE_PATH,FWK_PROP_PREFIX + ANSIBLE_CONFIG_FILE_PATH);
+        builder.mapping(ANSIBLE_GENERATE_INVENTORY,PROJ_PROP_PREFIX + ANSIBLE_GENERATE_INVENTORY);
+        builder.frameworkMapping(ANSIBLE_GENERATE_INVENTORY,FWK_PROP_PREFIX + ANSIBLE_GENERATE_INVENTORY);
         builder.mapping(ANSIBLE_SSH_AUTH_TYPE,PROJ_PROP_PREFIX + ANSIBLE_SSH_AUTH_TYPE);
         builder.frameworkMapping(ANSIBLE_SSH_AUTH_TYPE,FWK_PROP_PREFIX + ANSIBLE_SSH_AUTH_TYPE);
         builder.mapping(ANSIBLE_SSH_USER,PROJ_PROP_PREFIX + ANSIBLE_SSH_USER);
@@ -150,6 +153,8 @@ public class AnsibleNodeExecutor implements NodeExecutor, AnsibleDescribable {
     } catch (Exception e) {
         return NodeExecutorResultImpl.createFailure(AnsibleException.AnsibleFailureReason.AnsibleError, e.getMessage(), node);
     }
+
+    builder.cleanupTempFiles();
 
     return NodeExecutorResultImpl.createSuccess(node);
   }
