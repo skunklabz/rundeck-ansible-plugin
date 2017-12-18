@@ -142,6 +142,14 @@ public interface AnsibleDescribable extends Describable {
               null
     );
 
+    public static Property BASE_DIR_PROP = PropertyUtil.string(
+    			ANSIBLE_BASE_DIR_PATH,
+              "Ansible base directory path",
+              "Set ansible base directory path.",
+              false,
+              null
+    );
+
     public static Property PLAYBOOK_INLINE_PROP = PropertyBuilder.builder()
     		.string(ANSIBLE_PLAYBOOK_INLINE)
     		.required(false)
@@ -407,12 +415,4 @@ public interface AnsibleDescribable extends Describable {
             .title("Ansible config file path")
             .description("Set ansible config file path.")
             .build();
-
-    static final Property BASE_DIR_PROP = PropertyBuilder.builder()
-            .string(ANSIBLE_BASE_DIR_PATH)
-            .required(false)
-            .title("Ansible base directory path")
-            .description("Set ansible base directory path.")
-            .build();
-
 }

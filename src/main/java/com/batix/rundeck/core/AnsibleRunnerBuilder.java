@@ -736,23 +736,16 @@ public class AnsibleRunnerBuilder {
     }
 
     public String getBaseDir() {
-
-        final String baseDir;
-        baseDir = PropertyResolver.resolveProperty(
-                AnsibleDescribable.ANSIBLE_BASE_DIR_PATH,
-                null,
-                getFrameworkProject(),
-                getFramework(),
-                getNode(),
-                getjobConf()
-        );
+        String baseDir = null;
+        if ( getjobConf().containsKey(AnsibleDescribable.ANSIBLE_BASE_DIR_PATH) ) {
+        	baseDir = (String) jobConf.get(AnsibleDescribable.ANSIBLE_BASE_DIR_PATH);
+        }
 
         if (null != baseDir && baseDir.contains("${")) {
             return DataContextUtils.replaceDataReferences(baseDir, getContext().getDataContext());
         }
         return baseDir;
     }
-
 
     public AnsibleRunner buildAnsibleRunner() throws ConfigurationException{
 
