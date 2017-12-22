@@ -7,7 +7,7 @@ MAINTAINER David Kirstein <dak@batix.com>
 
 # install Ansible
 # check newest version: https://pypi.python.org/pypi/ansible
-RUN apk --no-cache add sudo python py-pip openssl ca-certificates && \
+RUN apk --no-cache add sudo python py-pip openssl ca-certificates openjdk8-jre bash curl && \
   apk --no-cache add --virtual build-deps python-dev libffi-dev openssl-dev build-base && \
   pip --no-cache-dir install --upgrade pip cffi && \
   pip --no-cache-dir install ansible==2.3.2.0 && \
@@ -21,8 +21,7 @@ ENV RDECK_JAR=${RDECK_BASE}/rundeck-launcher.jar
 ENV PATH=${PATH}:${RDECK_BASE}/tools/bin
 ENV MANPATH=${MANPATH}:${RDECK_BASE}/docs/man
 ENV RDECK_ADMIN_PASS=rdtest2017
-RUN apk --no-cache add openjdk8-jre bash curl && \
-  mkdir -p ${RDECK_BASE} && \
+RUN mkdir -p ${RDECK_BASE} && \
   mkdir ${RDECK_BASE}/libext && \
   curl -SLo ${RDECK_JAR} http://dl.bintray.com/rundeck/rundeck-maven/rundeck-launcher-2.10.2.jar
 COPY docker/realm.properties ${RDECK_BASE}/server/config/
