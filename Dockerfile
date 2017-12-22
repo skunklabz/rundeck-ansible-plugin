@@ -10,7 +10,7 @@ MAINTAINER David Kirstein <dak@batix.com>
 RUN apk --no-cache add sudo python py-pip openssl ca-certificates && \
   apk --no-cache add --virtual build-deps python-dev libffi-dev openssl-dev build-base && \
   pip --no-cache-dir install --upgrade pip cffi && \
-  pip --no-cache-dir install ansible==2.3.1.0 && \
+  pip --no-cache-dir install ansible==2.3.2.0 && \
   apk del build-deps && \
   mkdir -p /etc/ansible
 
