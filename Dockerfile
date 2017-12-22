@@ -24,7 +24,7 @@ ENV RDECK_ADMIN_PASS=rdtest2017
 RUN apk --no-cache add openjdk8-jre bash curl && \
   mkdir -p ${RDECK_BASE} && \
   mkdir ${RDECK_BASE}/libext && \
-  curl -SLo ${RDECK_JAR} http://dl.bintray.com/rundeck/rundeck-maven/rundeck-launcher-2.9.1.jar
+  curl -SLo ${RDECK_JAR} http://dl.bintray.com/rundeck/rundeck-maven/rundeck-launcher-2.10.2.jar
 COPY docker/realm.properties ${RDECK_BASE}/server/config/
 COPY docker/run.sh /
 RUN chmod +x /run.sh
