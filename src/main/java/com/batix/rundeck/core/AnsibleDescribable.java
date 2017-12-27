@@ -218,7 +218,7 @@ public interface AnsibleDescribable extends Describable {
     		 "Disable Limit",
     		 "Disables passing the --limit parameter from Rundeck into Ansible.  If you want to select hosts, you must pass the --limit in the extra arguments field.",
     		 true,
-    		 "true"
+    		 "false"
     );
 
     public static Property IGNORE_TAGS_PREFIX_PROP = PropertyUtil.string(
