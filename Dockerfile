@@ -17,7 +17,7 @@ ENV RDECK_JAR=${RDECK_BASE}/rundeck-launcher.jar
 # install Ansible and Java, create directories
 # check newest version: https://pypi.python.org/pypi/ansible
 RUN apk --no-cache add sudo bash ca-certificates curl openjdk8-jre openssl py-pip python sudo && \
-  apk --no-cache add --virtual build-base build-deps libffi-dev openssl-dev python-dev && \
+  apk --no-cache add --virtual build-deps build-base libffi-dev openssl-dev python-dev && \
   pip --no-cache-dir install --upgrade cffi pip && \
   pip --no-cache-dir install ansible==2.3.2.0 && \
   apk del build-deps && \
