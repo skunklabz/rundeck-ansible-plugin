@@ -5,21 +5,20 @@ MAINTAINER David Kirstein <dak@batix.com>
 # https://github.com/colebrumley/docker-rundeck
 # https://github.com/William-Yeh/docker-ansible
 
-ENV RDECK_BASE=/opt/rundeck
-ENV RDECK_JAR=${RDECK_BASE}/rundeck-launcher.jar
-ENV PATH=${PATH}:${RDECK_BASE}/tools/bin
-ENV MANPATH=${MANPATH}:${RDECK_BASE}/docs/man
-ENV RDECK_ADMIN_PASS=rdtest2017
-ENV PROJECT_BASE=${RDECK_BASE}/projects/Test-Project
 ENV ANSIBLE_HOST_KEY_CHECKING=false
+ENV MANPATH=${MANPATH}:${RDECK_BASE}/docs/man
+ENV PATH=${PATH}:${RDECK_BASE}/tools/bin
+ENV PROJECT_BASE=${RDECK_BASE}/projects/Test-Project
+ENV RDECK_ADMIN_PASS=rdtest2017
+ENV RDECK_BASE=/opt/rundeck
 ENV RDECK_HOST=localhost
-ENV RDECK_PORT=4440
+ENV RDECK_JAR=${RDECK_BASE}/rundeck-launcher.jar
 
 # install Ansible and Java, create directories
 # check newest version: https://pypi.python.org/pypi/ansible
-RUN apk --no-cache add sudo python py-pip openssl ca-certificates openjdk8-jre bash curl && \
-  apk --no-cache add --virtual build-deps python-dev libffi-dev openssl-dev build-base && \
-  pip --no-cache-dir install --upgrade pip cffi && \
+RUN apk --no-cache add sudo bash ca-certificates curl openjdk8-jre openssl py-pip python sudo && \
+  apk --no-cache add --virtual build-base build-deps libffi-dev openssl-dev python-dev && \
+  pip --no-cache-dir install --upgrade cffi pip && \
   pip --no-cache-dir install ansible==2.3.2.0 && \
   apk del build-deps && \
   mkdir -p /etc/ansible \
