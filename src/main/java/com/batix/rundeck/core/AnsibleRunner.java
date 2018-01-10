@@ -10,6 +10,7 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -94,7 +95,8 @@ public class AnsibleRunner {
 
   private boolean debug = false;
 
-  private Path tempDirectory;
+  private Path baseDirectory;
+  private boolean usingTempDirectory;
   private boolean retainTempDirectory;
   private final List<String> limits = new ArrayList<>();
   private int result;
@@ -281,12 +283,23 @@ public class AnsibleRunner {
   }
 
   /**
-   * Specify in which directory Ansible is run.
-   * If none is specified, a temporary directory will be created automatically.
+   * Specify in which directory Ansible is run, noting it is a temporary directory.
    */
   public AnsibleRunner tempDirectory(Path dir) {
     if (dir != null) {
-      this.tempDirectory = dir;
+      this.baseDirectory = dir;
+      this.usingTempDirectory = true;
+    }
+    return this;
+  }
+
+  /**
+   * Specify in which directory Ansible is run.
+   * A temporary directory will be used if none is specified.
+   */
+  public AnsibleRunner baseDirectory(String dir) {
+    if (dir != null) {
+      this.baseDirectory = Paths.get(dir);
     }
     return this;
   }
@@ -313,10 +326,12 @@ public class AnsibleRunner {
     }
     done = true;
 
-    if (tempDirectory == null) {
-      tempDirectory = Files.createTempDirectory("ansible-rundeck");
+    if (baseDirectory == null) {
+      // Use a temporary directory and mark it for possible removal later
+      this.usingTempDirectory = true;
+      baseDirectory = Files.createTempDirectory("ansible-rundeck");
     }
-    
+
     File tempPlaybook = null;
     File tempFile = null;
     File tempVaultFile = null;
@@ -338,11 +353,11 @@ public class AnsibleRunner {
         procArgs.add(arg);
       }
       procArgs.add("-t");
-      procArgs.add(tempDirectory.toFile().getAbsolutePath());
+      procArgs.add(baseDirectory.toFile().getAbsolutePath());
     } else if (type == AnsibleCommand.PlaybookPath) {
       procArgs.add(playbook);
     } else if (type == AnsibleCommand.PlaybookInline) {
-    	
+
 	  tempPlaybook = File.createTempFile("ansible-runner", "playbook");
 	  Files.write(tempPlaybook.toPath(), playbook.toString().getBytes());
 	  procArgs.add(tempPlaybook.getAbsolutePath());
@@ -355,7 +370,7 @@ public class AnsibleRunner {
     if (limits != null && limits.size() == 1) {
       procArgs.add("-l");
       procArgs.add(limits.get(0));
-      
+
     } else if (limits != null && limits.size() > 1) {
       tempFile = File.createTempFile("ansible-runner", "targets");
       StringBuilder sb = new StringBuilder();
@@ -439,7 +454,7 @@ public class AnsibleRunner {
     // execute the ansible process
     ProcessBuilder processBuilder = new ProcessBuilder()
       .command(procArgs)
-      .directory(tempDirectory.toFile()); // set cwd
+      .directory(baseDirectory.toFile()); // set cwd
     Process proc = null;
 
     Map<String, String> processEnvironment = processBuilder.environment();
@@ -460,7 +475,7 @@ public class AnsibleRunner {
       proc = processBuilder.start();
       OutputStream stdin = proc.getOutputStream();
       OutputStreamWriter stdinw = new OutputStreamWriter(stdin);
-      
+
       if (sshUsePassword) {
          if (sshPass != null && sshPass.length() > 0) {
         	 stdinw.write(sshPass+"\n");
@@ -527,8 +542,8 @@ public class AnsibleRunner {
         if (tempVaultFile != null && !tempVaultFile.delete()) {
           tempVaultFile.deleteOnExit();
         }
-        if (tempDirectory != null && !retainTempDirectory) {
-          deleteTempDirectory(tempDirectory);
+        if (usingTempDirectory && !retainTempDirectory) {
+          deleteTempDirectory(baseDirectory);
         }
     }
 
