@@ -14,13 +14,6 @@ ENV RDECK_ADMIN_PASS=rdtest2017
 ENV RDECK_HOST=localhost
 ENV RDECK_JAR=${RDECK_BASE}/rundeck-launcher.jar
 
-COPY docker/realm.properties ${RDECK_BASE}/server/config/
-COPY docker/run.sh /
-# install locally built plugin
-COPY build/libs/ansible-plugin-*.jar ${RDECK_BASE}/libext/
-# create project
-COPY docker/project.properties ${PROJECT_BASE}/etc/
-
 # install Ansible and Java, Rundeck via launcher, create directories
 # check newest version: https://pypi.python.org/pypi/ansible http://rundeck.org/downloads.html
 RUN apk --no-cache add sudo bash ca-certificates curl openjdk8-jre openssl py-pip python sudo && \
@@ -34,6 +27,13 @@ RUN apk --no-cache add sudo bash ca-certificates curl openjdk8-jre openssl py-pi
   ${RDECK_BASE}/libext && \
   curl -SLo ${RDECK_JAR} http://dl.bintray.com/rundeck/rundeck-maven/rundeck-launcher-2.10.5.jar && \
   chmod +x /run.sh
+
+COPY docker/realm.properties ${RDECK_BASE}/server/config/
+COPY docker/run.sh /
+# create project
+COPY docker/project.properties ${PROJECT_BASE}/etc/
+# install locally built plugin
+COPY build/libs/ansible-plugin-*.jar ${RDECK_BASE}/libext/
 
 # install plugin from GitHub
 # check newest version: https://github.com/Batix/rundeck-ansible-plugin/releases
