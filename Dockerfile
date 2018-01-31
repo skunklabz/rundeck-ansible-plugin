@@ -6,11 +6,11 @@ MAINTAINER David Kirstein <dak@batix.com>
 # https://github.com/William-Yeh/docker-ansible
 
 ENV ANSIBLE_HOST_KEY_CHECKING=false
+ENV RDECK_BASE=/opt/rundeck
 ENV MANPATH=${MANPATH}:${RDECK_BASE}/docs/man
 ENV PATH=${PATH}:${RDECK_BASE}/tools/bin
 ENV PROJECT_BASE=${RDECK_BASE}/projects/Test-Project
 ENV RDECK_ADMIN_PASS=rdtest2017
-ENV RDECK_BASE=/opt/rundeck
 ENV RDECK_HOST=localhost
 ENV RDECK_JAR=${RDECK_BASE}/rundeck-launcher.jar
 
