@@ -36,8 +36,4 @@ COPY build/libs/ansible-plugin-*.jar ${RDECK_BASE}/libext/
 
 RUN chmod +x /run.sh
 
-# install plugin from GitHub
-# check newest version: https://github.com/Batix/rundeck-ansible-plugin/releases
-#RUN curl -SLo ${RDECK_BASE}/libext/ansible-plugin.jar https://github.com/Batix/rundeck-ansible-plugin/releases/download/2.1.0/ansible-plugin-2.1.0.jar
-
 CMD /run.sh
