@@ -25,8 +25,7 @@ RUN apk --no-cache add sudo bash ca-certificates curl openjdk8-jre openssl py-pi
   ${PROJECT_BASE}/acls \
   ${PROJECT_BASE}/etc \
   ${RDECK_BASE}/libext && \
-  curl -SLo ${RDECK_JAR} http://dl.bintray.com/rundeck/rundeck-maven/rundeck-launcher-2.10.5.jar && \
-  chmod +x /run.sh
+  curl -SLo ${RDECK_JAR} http://dl.bintray.com/rundeck/rundeck-maven/rundeck-launcher-2.10.5.jar
 
 COPY docker/realm.properties ${RDECK_BASE}/server/config/
 COPY docker/run.sh /
@@ -34,6 +33,8 @@ COPY docker/run.sh /
 COPY docker/project.properties ${PROJECT_BASE}/etc/
 # install locally built plugin
 COPY build/libs/ansible-plugin-*.jar ${RDECK_BASE}/libext/
+
+RUN chmod +x /run.sh
 
 # install plugin from GitHub
 # check newest version: https://github.com/Batix/rundeck-ansible-plugin/releases
