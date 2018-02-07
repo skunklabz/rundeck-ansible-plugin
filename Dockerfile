@@ -25,7 +25,7 @@ RUN apk --no-cache add sudo bash ca-certificates curl openjdk8-jre openssl py-pi
   ${PROJECT_BASE}/acls \
   ${PROJECT_BASE}/etc \
   ${RDECK_BASE}/libext && \
-  curl -SLo ${RDECK_JAR} http://dl.bintray.com/rundeck/rundeck-maven/rundeck-launcher-2.10.5.jar
+  curl -SLo ${RDECK_JAR} http://dl.bintray.com/rundeck/rundeck-maven/rundeck-launcher-2.10.6.jar
 
 COPY docker/realm.properties ${RDECK_BASE}/server/config/
 COPY docker/run.sh /
