@@ -686,17 +686,17 @@ public class AnsibleRunnerBuilder {
         return inventory;
     }
 
-    public String getLimit() {
+    public String getLimit() throws ConfigurationException {
         final String limit;
 
         // Return Null if Disabled
-        if("true".equals(PropertyResolver.resolveProperty(
+        if(PropertyResolver.resolveBooleanProperty(
         				AnsibleDescribable.ANSIBLE_DISABLE_LIMIT,
-        				null,
+        				Boolean.valueOf(AnsibleDescribable.DISABLE_LIMIT_PROP.getDefaultValue()),
     				    getFrameworkProject(),
                         getFramework(),
                         getNode(),
-                        getjobConf()))){
+                        getjobConf())){
 
         	return null;
         }
