@@ -104,6 +104,7 @@ public interface AnsibleDescribable extends Describable {
     public static final String ANSIBLE_EXTRA_PARAM = "ansible-extra-param";
     public static final String ANSIBLE_VAULT_PATH = "ansible-vault-path";
     public static final String ANSIBLE_VAULTSTORE_PATH = "ansible-vault-storage-path";
+    public static final String ANSIBLE_VAULT_PASSWORD = "ansible-vault-password";
 
     // ssh configuration
     public static final String ANSIBLE_SSH_PASSWORD = "ansible-ssh-password";
@@ -277,6 +278,15 @@ public interface AnsibleDescribable extends Describable {
                     StringRenderingConstants.SelectionAccessor.STORAGE_PATH)
             .renderingOption(StringRenderingConstants.STORAGE_PATH_ROOT_KEY, "keys")
             .renderingOption(StringRenderingConstants.STORAGE_FILE_META_FILTER_KEY, "Rundeck-data-type=password")
+            .build();
+
+    static final Property VAULT_PASSWORD_PROP = PropertyBuilder.builder()
+            .string(ANSIBLE_VAULT_PASSWORD)
+            .required(false)
+            .title("Vault Password")
+            .description("Ansible Vault password.")
+            .renderingOption(StringRenderingConstants.DISPLAY_TYPE_KEY,
+                    StringRenderingConstants.DisplayType.PASSWORD)
             .build();
 
 
