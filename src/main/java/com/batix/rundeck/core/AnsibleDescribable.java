@@ -87,6 +87,7 @@ public interface AnsibleDescribable extends Describable {
     public static final String ANSIBLE_PLAYBOOK_PATH = "ansible-playbook";
     public static final String ANSIBLE_PLAYBOOK_INLINE = "ansible-playbook-inline";
     public static final String ANSIBLE_INVENTORY = "ansible-inventory";
+    public static final String ANSIBLE_GENERATE_INVENTORY = "ansible-generate-inventory";
     public static final String ANSIBLE_MODULE = "ansible-module";
     public static final String ANSIBLE_MODULE_ARGS = "ansible-module-args";
     public static final String ANSIBLE_DEBUG = "ansible-debug";
@@ -180,6 +181,13 @@ public interface AnsibleDescribable extends Describable {
 
     public static Property INVENTORY_PROP = PropertyUtil.string(ANSIBLE_INVENTORY, "ansible inventory File path",
             "File Path to the ansible inventory to use, It can be blank if \"Ansible config file path\" is set  ", false, null);
+
+    static final Property GENERATE_INVENTORY_PROP = PropertyBuilder.builder()
+    .booleanType(ANSIBLE_GENERATE_INVENTORY)
+    .required(false)
+    .title("Generate inventory")
+    .description("Generate Ansible inventory from Rundeck nodes.")
+    .build();
 
     public static Property EXECUTABLE_PROP = PropertyUtil.freeSelect(
               ANSIBLE_EXECUTABLE,

@@ -68,7 +68,7 @@ public class AnsibleModuleWorkflowStep implements StepPlugin, AnsibleDescribable
         configuration.put(AnsibleDescribable.ANSIBLE_DEBUG,"False");
     }
 
-    AnsibleRunnerBuilder builder = new AnsibleRunnerBuilder(context.getExecutionContext(),context.getFramework(),configuration);
+    AnsibleRunnerBuilder builder = new AnsibleRunnerBuilder(context.getExecutionContext(),context.getFramework(),context.getNodes(),configuration);
 
     try {
         runner = builder.buildAnsibleRunner();
@@ -84,6 +84,8 @@ public class AnsibleModuleWorkflowStep implements StepPlugin, AnsibleDescribable
     } catch (Exception e) {
         throw new StepException(e.getMessage(),e,AnsibleException.AnsibleFailureReason.AnsibleError);
     }
+
+    builder.cleanupTempFiles();
   }
 
   @Override
