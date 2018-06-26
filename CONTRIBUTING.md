@@ -43,6 +43,8 @@ Binaries will be automatically built when a GitHub release is published. On a su
 
 All you have to do is create a new release, give it a name and tag (for example 1.3.0, no leading "v") and describe the changes. [Travis](https://travis-ci.org/Batix/rundeck-ansible-plugin) takes care of the rest.
 
+Note: Do not include `[ci skip]` in the commit message used for a tag, as Travis won't start build.
+
 ### Old Manual Release ###
 
 *This is deprecated.*
