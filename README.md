@@ -1,4 +1,4 @@
-[![Gitter](https://img.shields.io/gitter/room/rundeck-ansible-plugin/Lobby.svg)](https://gitter.im/rundeck-ansible-plugin/Lobby) [![Build Status](https://travis-ci.org/Batix/rundeck-ansible-plugin.svg?branch=master)](https://travis-ci.org/Batix/rundeck-ansible-plugin) [Read more about Rundeck + Ansible](https://www.rundeck.com/ansible)
+[![Gitter](https://img.shields.io/gitter/room/rundeck-ansible-plugin/Lobby.svg)](https://gitter.im/rundeck-ansible-plugin/Lobby) [![Build Status](https://travis-ci.com/Batix/rundeck-ansible-plugin.svg?branch=master)](https://travis-ci.com/Batix/rundeck-ansible-plugin) [Read more about Rundeck + Ansible](https://www.rundeck.com/ansible)
 
 **This is an alpha release!** Use with caution.
 
