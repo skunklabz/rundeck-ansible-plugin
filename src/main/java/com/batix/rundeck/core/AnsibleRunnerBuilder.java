@@ -697,7 +697,9 @@ public class AnsibleRunnerBuilder {
 
     public String getInventory() throws ConfigurationException {
         String inventory;
-        if (generateInventory()) {
+        Boolean isGenerated =  generateInventory();
+
+        if (isGenerated !=null && isGenerated) {
             File tempInventory = new AnsibleInventoryBuilder(this.nodes).buildInventory();
             tempFiles.add(tempInventory);
             inventory = tempInventory.getAbsolutePath();
