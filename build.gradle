@@ -1,7 +1,7 @@
 group 'com.batix.rundeck'
 version = System.env.TRAVIS_TAG ?: "SNAPSHOT"
 
-ext.rundeckPluginVersion = '1.1'
+ext.rundeckPluginVersion = '1.2'
 ext.pluginClassNames = [
   'com.batix.rundeck.plugins.AnsibleResourceModelSourceFactory',
   'com.batix.rundeck.plugins.AnsibleNodeExecutor',
@@ -30,8 +30,8 @@ configurations {
 }
 
 dependencies {
-  pluginLibs 'com.google.code.gson:gson:2.8.0'
-  compile 'org.rundeck:rundeck-core:2.8.2'
+  pluginLibs 'com.google.code.gson:gson:2.8.5'
+  compile 'org.rundeck:rundeck-core:3.0.1-20180803'
 }
 
 task copyToLib(type: Copy) {
@@ -48,6 +48,7 @@ jar {
     attributes 'Rundeck-Plugin-Version': rundeckPluginVersion
     attributes 'Rundeck-Plugin-Archive': 'true'
     attributes 'Rundeck-Plugin-Libs': "${libList}"
+    attributes 'Rundeck-Plugin-URL': 'https://github.com/Batix/rundeck-ansible-plugin'
   }
   dependsOn(copyToLib)
 }
