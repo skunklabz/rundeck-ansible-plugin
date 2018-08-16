@@ -68,13 +68,13 @@ A project named "Test-Project" is already created and configured to use the plug
 
 ### Nodes ###
 
-- Click *Nodes* in the header and give Rundeck a moment to query your hosts via Ansible (you can watch the logs to see when it's finished)
+- Click *Nodes* in the left pane and give Rundeck a moment to query your hosts via Ansible (you can watch the logs to see when it's finished)
 - Select the *All Nodes* filter and you should be presented with your node(s)
 - Expand a node to see the facts Ansible gathered about it (you can use these for filtering!)
 
 ### Commands ###
 
-- Click *Commands* in the header
+- Click *Commands* in the left pane
 - Type `.*` in the *Nodes* textbox and press enter
 - Type a simple command (for example `date`) in the first textbox and hit enter
 - After some seconds you should see the output of your command, executed on every node
@@ -98,7 +98,7 @@ First, create a text file called `example-playbook.yaml` in the directory. Fill 
     command: date
 ```
 
-Now (re-)start the container and click on *Jobs* in the header. Create a new job and name it "ping all".
+Now (re-)start the container and click on *Jobs* in the left pane. Create a new job and name it "ping all".
 
 Below under *Add a Step*, click on *Workflow Steps* and select *Ansible Playbook*. Put `/data/example-playbook.yaml` into the first textbox (Path to a playbook) and hit *Save* for this step.
 
@@ -114,7 +114,7 @@ If you want to try out other plugins in your test install (see [here](http://run
 
 Here is a quick guide to add Slack notifications to your jobs:
 - Go to [https://github.com/rundeck-plugins/slack-incoming-webhook-plugin]()
-- Download the latest version from the "releases" tab there (grab the .jar, e.g. slack-incoming-webhook-plugin-1.0.jar)
+- Download the latest version from the "releases" tab there (grab the .jar, e.g. slack-incoming-webhook-plugin-1.1.jar)
 - Create a directory named "libext" in your directory (where you start the container)
 - Put the .jar file there
 - (Re)Start the container (see [Running](#Running))
