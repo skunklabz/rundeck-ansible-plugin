@@ -64,6 +64,8 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
   protected String vaultFile;
   protected String vaultPassword;
 
+  protected String baseDirectoryPath;
+
   public AnsibleResourceModelSource(final Framework framework) {
       this.framework = framework;
   }
@@ -129,6 +131,8 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
 
     vaultFile = (String) resolveProperty(AnsibleDescribable.ANSIBLE_VAULT_PATH,null,configuration,executionDataContext);
     vaultPassword = (String) resolveProperty(AnsibleDescribable.ANSIBLE_VAULT_PASSWORD,null,configuration,executionDataContext);
+
+    baseDirectoryPath = (String) resolveProperty(AnsibleDescribable.ANSIBLE_BASE_DIR_PATH,null,configuration,executionDataContext);
   }
 
   public AnsibleRunner buildAnsibleRunner() throws ResourceModelSourceException{
@@ -209,6 +213,9 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
           throw new ResourceModelSourceException("Could not read vault file " + vaultFile,e);
         }
         runner.vaultPass(vaultPassword);
+      }
+      if (baseDirectoryPath != null) {
+	      runner.baseDirectory(baseDirectoryPath);
       }
 
 	  return runner;
