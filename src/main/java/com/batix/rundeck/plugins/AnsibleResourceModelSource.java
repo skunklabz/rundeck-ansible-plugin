@@ -337,7 +337,7 @@ public class AnsibleResourceModelSource implements ResourceModelSource {
             node.setOsName(root.get("ansible_os_name").getAsString());
           }
 
-          if (root.has("ansible_architecture")) {
+          if (root.has("ansible_architecture") && !root.get("ansible_architecture").isJsonNull()) {
             node.setOsArch(root.get("ansible_architecture").getAsString());
           }
 
