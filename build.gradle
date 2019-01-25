@@ -43,6 +43,14 @@ jar {
   from "$buildDir/output"
   manifest {
     def libList = configurations.pluginLibs.collect{'lib/' + it.name}.join(' ')
+    attributes 'Rundeck-Plugin-Name' : 'Ansible Integration'
+    attributes 'Rundeck-Plugin-Description' : 'This plugin brings basic Ansible support to Rundeck. It imports hosts from Ansible\'s inventory, including a bunch of facts, and can run modules and playbooks. There is also a node executor and file copier for your project.'
+    attributes 'Rundeck-Plugin-Rundeck-Compatibility-Version': '3.0.1+'
+    attributes 'Rundeck-Plugin-Tags': 'java,node executor,resource model,workflow step,ansible'
+    attributes 'Rundeck-Plugin-License': 'MIT'
+    attributes 'Rundeck-Plugin-Source-Link': 'https://github.com/Batix/rundeck-ansible-plugin'
+    attributes 'Rundeck-Plugin-Target-Host-Compatibility': 'all'
+    attributes 'Rundeck-Plugin-Author': 'David Kirstein'
     attributes 'Rundeck-Plugin-Classnames': pluginClassNames
     attributes 'Rundeck-Plugin-File-Version': version
     attributes 'Rundeck-Plugin-Version': rundeckPluginVersion
