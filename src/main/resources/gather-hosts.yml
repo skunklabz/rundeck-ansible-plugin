@@ -18,6 +18,6 @@
     - name: "Template the gathered facts"
       template:
         src: host-tpl.j2
-        dest: "{{ tmpdir }}/data/{{ inventory_hostname }"
+        dest: "{{ tmpdir }}/data/{{ inventory_hostname }}"
       delegate_to: localhost
       become: no
