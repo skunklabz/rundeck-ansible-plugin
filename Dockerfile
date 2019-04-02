@@ -17,7 +17,7 @@ ENV PROJECT_BASE=${RDECK_BASE}/projects/Test-Project
 # base image already installed: curl, openjdk-8-jdk-headless, ssh-client, sudo, uuid-runtime, wget
 # (see https://github.com/rundeck/rundeck/blob/master/docker/ubuntu-base/Dockerfile)
 RUN sudo apt-get -y update \
-  && sudo apt-get -y --no-install-recommends install ca-certificates python3-pip \
+  && sudo apt-get -y --no-install-recommends install ca-certificates python3-pip sshpass \
   && sudo -H pip3 --no-cache-dir install --upgrade pip setuptools \
   # https://pypi.org/project/ansible/#history
   && sudo -H pip3 --no-cache-dir install ansible==2.7.9 \
