@@ -805,6 +805,16 @@ public class AnsibleRunnerBuilder {
              if (privateKey != null) {
                 runner = runner.sshPrivateKey(privateKey);
              }
+
+             if(getUseSshAgent()){
+                 runner.sshUseAgent(true);
+
+                 String passphraseOption = getPassphrase();
+                 runner.sshPassphrase(passphraseOption);
+             }
+
+
+
         } else if (AuthenticationType.password == authType) {
             final String password = getSshPassword();
             if (password != null) {
@@ -882,6 +892,10 @@ public class AnsibleRunnerBuilder {
             runner = runner.becomePassword(become_password);
         }
 
+        String executable = getExecutable();
+        if (executable != null) {
+            runner = runner.executable(executable);
+        }
 
         String configFile = getConfigFile();
         if (configFile != null) {
@@ -923,5 +937,85 @@ public class AnsibleRunnerBuilder {
             }
         }
         tempFiles.clear();
+    }
+
+    public Boolean getUseSshAgent() {
+        Boolean useAgent = false;
+        String sAgent = PropertyResolver.resolveProperty(
+                AnsibleDescribable.ANSIBLE_SSH_USE_AGENT,
+                null,
+                getFrameworkProject(),
+                getFramework(),
+                getNode(),
+                getjobConf()
+        );
+
+        if (null != sAgent) {
+            useAgent = Boolean.parseBoolean(sAgent);
+        }
+        return useAgent;
+    }
+
+    String getPassphrase() throws ConfigurationException {
+        //look for option values first
+        //typically jobs use secure options to dynamically setup the ssh password
+        final String passphraseOption = PropertyResolver.resolveProperty(
+                AnsibleDescribable.ANSIBLE_SSH_PASSPHRASE_OPTION,
+                AnsibleDescribable.DEFAULT_ANSIBLE_SSH_PASSPHRASE_OPTION,
+                getFrameworkProject(),
+                getFramework(),
+                getNode(),
+                getjobConf()
+        );
+        String sshPassword = PropertyResolver.evaluateSecureOption(passphraseOption, getContext());
+
+        if(null!=sshPassword){
+            // is true if there is an ssh option defined in the private data context
+            return sshPassword;
+        }else{
+            sshPassword = getPassphraseStoragePath();
+            if(null!=sshPassword){
+                return sshPassword;
+            }
+        }
+
+        return null;
+    }
+
+    public String getPassphraseStoragePath() throws ConfigurationException {
+
+        String storagePath = PropertyResolver.resolveProperty(
+                AnsibleDescribable.ANSIBLE_SSH_PASSPHRASE,
+                null,
+                getFrameworkProject(),
+                getFramework(),
+                getNode(),
+                getjobConf()
+        );
+
+        if(null!=storagePath) {
+            //expand properties in path
+            if (storagePath != null && storagePath.contains("${")) {
+                storagePath = DataContextUtils.replaceDataReferences(storagePath, context.getDataContext());
+            }
+
+            Path path = PathUtil.asPath(storagePath);
+            try {
+                ResourceMeta contents = context.getStorageTree().getResource(path)
+                        .getContents();
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                contents.writeContent(byteArrayOutputStream);
+                return new String(byteArrayOutputStream.toByteArray());
+            } catch (StorageException e) {
+                throw new ConfigurationException("Failed to read the shh Passphrase for " +
+                        "storage path: " + storagePath + ": " + e.getMessage());
+            } catch (IOException e) {
+                throw new ConfigurationException("Failed to read the ssh Passphrase for " +
+                        "storage path: " + storagePath + ": " + e.getMessage());
+            }
+        }
+
+        return null;
+
     }
 }

@@ -37,6 +37,9 @@ public class AnsibleModuleWorkflowStep implements StepPlugin, AnsibleDescribable
         builder.property(SSH_KEY_FILE_PROP);
         builder.property(SSH_KEY_STORAGE_PROP);
         builder.property(SSH_TIMEOUT_PROP);
+        builder.property(SSH_USE_AGENT);
+        builder.property(SSH_PASSPHRASE);
+        builder.property(SSH_PASSPHRASE_OPTION);
         builder.property(BECOME_PROP);
         builder.property(BECOME_AUTH_TYPE_PROP);
         builder.property(BECOME_USER_PROP);

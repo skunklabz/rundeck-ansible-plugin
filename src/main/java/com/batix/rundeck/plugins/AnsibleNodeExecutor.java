@@ -1,5 +1,6 @@
 package com.batix.rundeck.plugins;
 
+import com.dtolabs.rundeck.core.execution.ExecutionLogger;
 import com.dtolabs.rundeck.core.plugins.configuration.ConfigurationException;
 import com.batix.rundeck.core.AnsibleDescribable;
 import com.batix.rundeck.core.AnsibleException;
@@ -38,9 +39,12 @@ public class AnsibleNodeExecutor implements NodeExecutor, AnsibleDescribable {
         builder.property(SSH_AUTH_TYPE_PROP);
         builder.property(SSH_USER_PROP);
         builder.property(SSH_PASSWORD_STORAGE_PROP);
-        builder.property(SSH_KEY_FILE_PROP); 
-        builder.property(SSH_KEY_STORAGE_PROP); 
+        builder.property(SSH_KEY_FILE_PROP);
+        builder.property(SSH_KEY_STORAGE_PROP);
         builder.property(SSH_TIMEOUT_PROP);
+        builder.property(SSH_USE_AGENT);
+        builder.property(SSH_PASSPHRASE);
+        builder.property(SSH_PASSPHRASE_OPTION);
         builder.property(BECOME_PROP);
         builder.property(BECOME_AUTH_TYPE_PROP);
         builder.property(BECOME_USER_PROP);
@@ -67,6 +71,12 @@ public class AnsibleNodeExecutor implements NodeExecutor, AnsibleDescribable {
         builder.frameworkMapping(ANSIBLE_SSH_KEYPATH_STORAGE_PATH,FWK_PROP_PREFIX + ANSIBLE_SSH_KEYPATH_STORAGE_PATH);
         builder.mapping(ANSIBLE_SSH_PASSWORD_STORAGE_PATH,PROJ_PROP_PREFIX + ANSIBLE_SSH_PASSWORD_STORAGE_PATH);
         builder.frameworkMapping(ANSIBLE_SSH_PASSWORD_STORAGE_PATH,FWK_PROP_PREFIX + ANSIBLE_SSH_PASSWORD_STORAGE_PATH);
+        builder.mapping(ANSIBLE_SSH_USE_AGENT,PROJ_PROP_PREFIX + ANSIBLE_SSH_USE_AGENT);
+        builder.frameworkMapping(ANSIBLE_SSH_USE_AGENT,FWK_PROP_PREFIX + ANSIBLE_SSH_USE_AGENT);
+        builder.mapping(ANSIBLE_SSH_PASSPHRASE_OPTION,PROJ_PROP_PREFIX + ANSIBLE_SSH_PASSPHRASE_OPTION);
+        builder.frameworkMapping(ANSIBLE_SSH_PASSPHRASE_OPTION,FWK_PROP_PREFIX + ANSIBLE_SSH_PASSPHRASE_OPTION);
+        builder.mapping(ANSIBLE_SSH_PASSPHRASE,PROJ_PROP_PREFIX + ANSIBLE_SSH_PASSPHRASE);
+        builder.frameworkMapping(ANSIBLE_SSH_PASSPHRASE,FWK_PROP_PREFIX + ANSIBLE_SSH_PASSPHRASE);
         builder.mapping(ANSIBLE_BECOME,PROJ_PROP_PREFIX + ANSIBLE_BECOME);
         builder.frameworkMapping(ANSIBLE_BECOME,FWK_PROP_PREFIX + ANSIBLE_BECOME);
         builder.mapping(ANSIBLE_BECOME_USER,PROJ_PROP_PREFIX + ANSIBLE_BECOME_USER);
@@ -155,11 +165,11 @@ public class AnsibleNodeExecutor implements NodeExecutor, AnsibleDescribable {
     AnsibleRunnerBuilder builder = new AnsibleRunnerBuilder(node, context, context.getFramework(), jobConf);
 
     try {
-        runner = builder.buildAnsibleRunner();  
+        runner = builder.buildAnsibleRunner();
     } catch (ConfigurationException e) {
           return NodeExecutorResultImpl.createFailure(AnsibleException.AnsibleFailureReason.ParseArgumentsError, e.getMessage(), node);
     }
- 
+
     try {
         runner.run();
     } catch (Exception e) {

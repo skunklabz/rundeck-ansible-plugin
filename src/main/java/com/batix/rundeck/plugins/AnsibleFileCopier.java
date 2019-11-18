@@ -37,9 +37,12 @@ public class AnsibleFileCopier implements FileCopier, AnsibleDescribable {
         builder.property(SSH_AUTH_TYPE_PROP);
         builder.property(SSH_USER_PROP);
         builder.property(SSH_PASSWORD_STORAGE_PROP);
-        builder.property(SSH_KEY_FILE_PROP); 
-        builder.property(SSH_KEY_STORAGE_PROP); 
+        builder.property(SSH_KEY_FILE_PROP);
+        builder.property(SSH_KEY_STORAGE_PROP);
         builder.property(SSH_TIMEOUT_PROP);
+        builder.property(SSH_USE_AGENT);
+        builder.property(SSH_PASSPHRASE);
+        builder.property(SSH_PASSPHRASE_OPTION);
         builder.property(BECOME_PROP);
         builder.property(BECOME_AUTH_TYPE_PROP);
         builder.property(BECOME_USER_PROP);
@@ -52,6 +55,12 @@ public class AnsibleFileCopier implements FileCopier, AnsibleDescribable {
         builder.frameworkMapping(ANSIBLE_VAULT_PATH,FWK_PROP_PREFIX + ANSIBLE_VAULT_PATH);
         builder.mapping(ANSIBLE_VAULTSTORE_PATH,PROJ_PROP_PREFIX + ANSIBLE_VAULTSTORE_PATH);
         builder.frameworkMapping(ANSIBLE_VAULTSTORE_PATH,FWK_PROP_PREFIX + ANSIBLE_VAULTSTORE_PATH);
+        builder.mapping(ANSIBLE_SSH_PASSPHRASE,PROJ_PROP_PREFIX + ANSIBLE_SSH_PASSPHRASE);
+        builder.frameworkMapping(ANSIBLE_SSH_PASSPHRASE,FWK_PROP_PREFIX + ANSIBLE_SSH_PASSPHRASE);
+        builder.mapping(ANSIBLE_SSH_PASSPHRASE_OPTION,PROJ_PROP_PREFIX + ANSIBLE_SSH_PASSPHRASE_OPTION);
+        builder.frameworkMapping(ANSIBLE_SSH_PASSPHRASE_OPTION,FWK_PROP_PREFIX + ANSIBLE_SSH_PASSPHRASE_OPTION);
+        builder.mapping(ANSIBLE_SSH_USE_AGENT,PROJ_PROP_PREFIX + ANSIBLE_SSH_USE_AGENT);
+        builder.frameworkMapping(ANSIBLE_SSH_USE_AGENT,FWK_PROP_PREFIX + ANSIBLE_SSH_USE_AGENT);
         DESC=builder.build();
   }
 
@@ -132,7 +141,7 @@ public class AnsibleFileCopier implements FileCopier, AnsibleDescribable {
 
 
     try {
-        runner = builder.buildAnsibleRunner();  
+        runner = builder.buildAnsibleRunner();
     } catch (ConfigurationException e) {
           throw new FileCopierException("Error configuring Ansible.",AnsibleFailureReason.ParseArgumentsError, e);
     }
