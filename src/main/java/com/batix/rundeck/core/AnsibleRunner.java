@@ -4,6 +4,7 @@ import com.batix.rundeck.utils.Logging;
 import com.batix.rundeck.utils.ListenerFactory;
 import com.batix.rundeck.utils.Listener;
 import com.batix.rundeck.utils.ArgumentTokenizer;
+import com.dtolabs.rundeck.core.utils.SSHAgentProcess;
 
 import java.io.*;
 import java.nio.file.FileVisitResult;
@@ -86,6 +87,10 @@ public class AnsibleRunner {
   private String sshUser;
   private String sshPrivateKey;
   private Integer sshTimeout;
+  private boolean sshUseAgent = false;
+  private String sshPassphrase;
+  private SSHAgentProcess sshAgent;
+  private Integer sshAgentTimeToLive = 0;
 
   // ansible become args
   protected Boolean become = Boolean.FALSE;
@@ -101,6 +106,7 @@ public class AnsibleRunner {
   private final List<String> limits = new ArrayList<>();
   private int result;
   private Map<String, String> options = new HashMap<>();
+  private String executable = "sh";
 
   protected String configFile;
 
@@ -195,6 +201,22 @@ public class AnsibleRunner {
       sshUsePassword = usePass;
     } else {
       sshUsePassword = false;
+    }
+    return this;
+  }
+
+  public AnsibleRunner sshUseAgent(Boolean useAgent) {
+    if (useAgent != null) {
+      sshUseAgent = useAgent;
+    } else {
+      sshUseAgent = false;
+    }
+    return this;
+  }
+
+  public AnsibleRunner sshPassphrase(String passphrase) {
+    if (passphrase != null && passphrase.length() > 0) {
+      sshPassphrase = passphrase;
     }
     return this;
   }
@@ -304,6 +326,14 @@ public class AnsibleRunner {
     return this;
   }
 
+  /**
+   * Specify the executable
+   */
+  public AnsibleRunner executable(String executable) {
+    this.executable = executable;
+    return this;
+  }
+
   public void deleteTempDirectory(Path tempDirectory) throws IOException {
       Files.walkFileTree(tempDirectory, new SimpleFileVisitor<Path>() {
         @Override
@@ -409,6 +439,10 @@ public class AnsibleRunner {
 
        Files.write(tempPkFile.toPath(), sshPrivateKey.getBytes());
        procArgs.add("--private-key" + "=" + tempPkFile.toPath());
+
+       if(sshUseAgent){
+         registerKeySshAgent(tempPkFile.getAbsolutePath());
+       }
     }
 
     if (sshUser != null && sshUser.length() > 0) {
@@ -471,6 +505,10 @@ public class AnsibleRunner {
         processEnvironment.put(optionName, this.options.get(optionName));
     }
 
+    if(sshUseAgent && sshAgent!=null){
+      processEnvironment.put("SSH_AUTH_SOCK", this.sshAgent.getSocketPath());
+    }
+
     try {
       proc = processBuilder.start();
       OutputStream stdin = proc.getOutputStream();
@@ -502,6 +540,13 @@ public class AnsibleRunner {
       errthread.join();
       System.err.flush();
       System.out.flush();
+
+
+      if(sshUseAgent){
+        if(sshAgent!=null){
+          sshAgent.stopAgent();
+        }
+      }
 
       if (result != 0) {
     	  if (ignoreErrors == false) {
@@ -552,6 +597,72 @@ public class AnsibleRunner {
 
   public int getResult() {
     return result;
+  }
+
+  public boolean registerKeySshAgent(String keyPath) throws AnsibleException, Exception {
+
+    if(sshAgent==null){
+      sshAgent = new SSHAgentProcess(this.sshAgentTimeToLive);
+    }
+
+    List<String> procArgs = new ArrayList<>();
+    procArgs.add("/usr/bin/ssh-add");
+    procArgs.add(keyPath);
+
+    if (debug) {
+      System.out.println("ssh-agent socket " + sshAgent.getClass());
+      System.out.println(" registerKeySshAgent: "+procArgs.toString());
+    }
+
+    // execute the ssh-agent add process
+    ProcessBuilder processBuilder = new ProcessBuilder()
+            .command(procArgs)
+            .directory(baseDirectory.toFile());
+    Process proc = null;
+
+    Map<String, String> env = processBuilder.environment();
+    env.put("SSH_AUTH_SOCK", this.sshAgent.getSocketPath());
+
+    try {
+      proc = processBuilder.start();
+
+      OutputStream stdin = proc.getOutputStream();
+      OutputStreamWriter stdinw = new OutputStreamWriter(stdin);
+
+      try{
+        if (sshPassphrase != null && sshPassphrase.length() > 0) {
+          stdinw.write(sshPassphrase+"\n");
+          stdinw.flush();
+        }
+      } catch (Exception  e) {
+        if (debug) {
+          System.out.println("not prompt enable");
+        }
+      }
+
+      int exitCode = proc.waitFor();
+
+     if (exitCode != 0) {
+          throw new AnsibleException("ERROR: ssh-add returns with non zero code:" + procArgs.toString(),
+                  AnsibleException.AnsibleFailureReason.AnsibleNonZero);
+      }
+
+    } catch (IOException  e) {
+      throw new AnsibleException("ERROR: error adding private key to ssh-agent." + procArgs.toString(), e, AnsibleException.AnsibleFailureReason.Unknown);
+    } catch (InterruptedException e) {
+      if(proc!=null) {
+        proc.destroy();
+      }
+      Thread.currentThread().interrupt();
+      throw new AnsibleException("ERROR: error adding private key to ssh-agen Interrupted.", e, AnsibleException.AnsibleFailureReason.Interrupted);
+    }finally {
+      // Make sure to always cleanup on failure and success
+      if(proc!=null) {
+        proc.destroy();
+      }
+    }
+
+    return true;
   }
 
 }

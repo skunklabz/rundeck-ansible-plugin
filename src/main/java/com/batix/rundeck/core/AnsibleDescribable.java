@@ -120,6 +120,15 @@ public interface AnsibleDescribable extends Describable {
     public static final String ANSIBLE_SSH_USER = "ansible-ssh-user";
     public static final String ANSIBLE_SSH_AUTH_TYPE = "ansible-ssh-auth-type";
 
+    public static final String ANSIBLE_SSH_USE_AGENT = "ansible-ssh-use-agent";
+    public static final String ANSIBLE_SSH_PASSPHRASE = "ansible-ssh-passphrase-storage-path";
+    public static final String ANSIBLE_SSH_PASSPHRASE_OPTION = "ansible-ssh-passphrase-option";
+    public static final String DEFAULT_ANSIBLE_SSH_PASSPHRASE_OPTION = "option.password";
+
+
+
+
+
     // become configuration
     public static final String ANSIBLE_BECOME = "ansible-become";
     public static final String ANSIBLE_BECOME_USER = "ansible-become-user";
@@ -372,6 +381,40 @@ public interface AnsibleDescribable extends Describable {
             .renderingOption(StringRenderingConstants.GROUPING,"SECONDARY")
             .renderingOption(StringRenderingConstants.GROUP_NAME,"SSH Connection")
             .build();
+
+    static final Property SSH_USE_AGENT = PropertyBuilder.builder()
+            .booleanType(ANSIBLE_SSH_USE_AGENT)
+            .required(false)
+            .title("Use ssh-agent.")
+            .description("Use ssh-agent to connect with a private key plus a passphrase.")
+            .renderingOption(StringRenderingConstants.GROUPING,"SECONDARY")
+            .renderingOption(StringRenderingConstants.GROUP_NAME,"SSH Connection")
+            .build();
+
+    static final Property SSH_PASSPHRASE = PropertyBuilder.builder()
+            .string(ANSIBLE_SSH_PASSPHRASE)
+            .required(false)
+            .title("SSH Passphrase for private key")
+            .description("SSH Passphrase for private key, it just works if the ssh-agent is used.")
+            .renderingOption(StringRenderingConstants.SELECTION_ACCESSOR_KEY,
+                    StringRenderingConstants.SelectionAccessor.STORAGE_PATH)
+            .renderingOption(StringRenderingConstants.STORAGE_PATH_ROOT_KEY, "keys")
+            .renderingOption(StringRenderingConstants.STORAGE_FILE_META_FILTER_KEY, "Rundeck-data-type=password")
+            .renderingOption(StringRenderingConstants.GROUPING,"SECONDARY")
+            .renderingOption(StringRenderingConstants.GROUP_NAME,"SSH Connection")
+            .build();
+
+    static final Property SSH_PASSPHRASE_OPTION = PropertyBuilder.builder()
+            .string(ANSIBLE_SSH_PASSPHRASE_OPTION)
+            .required(false)
+            .title("SSH Passphrase from secure option")
+            .description("SSH Passphrase from secure option on a job, it just works if the ssh-agent is used.")
+            .defaultValue(DEFAULT_ANSIBLE_SSH_PASSPHRASE_OPTION)
+            .renderingOption(StringRenderingConstants.GROUPING,"SECONDARY")
+            .renderingOption(StringRenderingConstants.GROUP_NAME,"SSH Connection")
+            .build();
+
+
 
 
     static final Property BECOME_PROP = PropertyBuilder.builder()
