@@ -420,7 +420,7 @@ public interface AnsibleDescribable extends Describable {
     static final Property BECOME_PROP = PropertyBuilder.builder()
             .booleanType(ANSIBLE_BECOME)
             .required(false)
-            .title("Use become previlege escalation.")
+            .title("Use become privilege escalation.")
             .description("Run operations with become (nopasswd implied).")
             .renderingOption(StringRenderingConstants.GROUPING,"SECONDARY")
             .renderingOption(StringRenderingConstants.GROUP_NAME,"Privilege Escalation")
@@ -440,7 +440,7 @@ public interface AnsibleDescribable extends Describable {
             .string(ANSIBLE_BECOME_PASSWORD_STORAGE_PATH)
             .required(false)
             .title("Privilege escalation Password Storage Path.")
-            .description("Become password used for previlege escalation.")
+            .description("Become password used for privilege escalation.")
             .renderingOption(StringRenderingConstants.SELECTION_ACCESSOR_KEY,
                     StringRenderingConstants.SelectionAccessor.STORAGE_PATH)
             .renderingOption(StringRenderingConstants.STORAGE_PATH_ROOT_KEY, "keys")
@@ -453,7 +453,7 @@ public interface AnsibleDescribable extends Describable {
             .string(ANSIBLE_BECOME_PASSWORD)
             .required(false)
             .title("Privilege escalation Password")
-            .description("Become password used for previlege escalation.")
+            .description("Become password used for privilege escalation.")
             .renderingOption(StringRenderingConstants.DISPLAY_TYPE_KEY,
                     StringRenderingConstants.DisplayType.PASSWORD)
             .renderingOption(StringRenderingConstants.GROUPING,"SECONDARY")
