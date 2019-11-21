@@ -584,6 +584,9 @@ public class AnsibleRunner {
         if (tempPkFile != null && !tempPkFile.delete()) {
           tempPkFile.deleteOnExit();
         }
+        if (tempVarsFile != null && !tempVarsFile.delete()) {
+          tempVarsFile.deleteOnExit();
+        }
         if (tempVaultFile != null && !tempVaultFile.delete()) {
           tempVaultFile.deleteOnExit();
         }
