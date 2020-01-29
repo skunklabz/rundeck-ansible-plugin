@@ -235,7 +235,7 @@ public class AnsibleRunnerBuilder {
                     contents.writeContent(byteArrayOutputStream);
                     return new String(byteArrayOutputStream.toByteArray());
                 } catch (StorageException e) {
-                    throw new ConfigurationException("Failed to read the shh password for " +
+                    throw new ConfigurationException("Failed to read the ssh password for " +
                             "storage path: " + storagePath + ": " + e.getMessage());
                 } catch (IOException e) {
                     throw new ConfigurationException("Failed to read the ssh password for " +
@@ -1007,7 +1007,7 @@ public class AnsibleRunnerBuilder {
                 contents.writeContent(byteArrayOutputStream);
                 return new String(byteArrayOutputStream.toByteArray());
             } catch (StorageException e) {
-                throw new ConfigurationException("Failed to read the shh Passphrase for " +
+                throw new ConfigurationException("Failed to read the ssh Passphrase for " +
                         "storage path: " + storagePath + ": " + e.getMessage());
             } catch (IOException e) {
                 throw new ConfigurationException("Failed to read the ssh Passphrase for " +
