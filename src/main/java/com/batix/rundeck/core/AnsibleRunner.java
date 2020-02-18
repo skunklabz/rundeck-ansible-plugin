@@ -587,6 +587,10 @@ public class AnsibleRunner {
         if (tempVaultFile != null && !tempVaultFile.delete()) {
           tempVaultFile.deleteOnExit();
         }
+        if (tempPlaybook != null && !tempPlaybook.delete()) {
+          tempPlaybook.deleteOnExit();
+        }
+
         if (usingTempDirectory && !retainTempDirectory) {
           deleteTempDirectory(baseDirectory);
         }
