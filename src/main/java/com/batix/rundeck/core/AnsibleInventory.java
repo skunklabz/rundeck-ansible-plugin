@@ -38,11 +38,13 @@ public class AnsibleInventory {
     all.addHost(nodeName, host, attributes);
     // Create Ansible groups by attribute
     // Group by osFamily is needed for windows hosts setup
-    String[] attributeGroups = { "osFamily" };
+    String[] attributeGroups = { "osFamily", "tags" };
     for (String g: attributeGroups) {
       if (attributes.containsKey(g)) {
-        String groupName = attributes.get(g).toLowerCase();
-        all.getOrAddChildHostGroup(groupName).addHost(nodeName);
+        String[] groupNames = attributes.get(g).toLowerCase().split(",");
+        for (String groupName: groupNames) {
+          all.getOrAddChildHostGroup(groupName.trim()).addHost(nodeName);
+        }
       }
     }
     return this;
